@@ -1,0 +1,38 @@
+{
+  "name": "hardhat-tutorial",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "hardhat test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@chainlink/contracts": "^0.2.2",
+    "@epsproxy/contracts": "^1.8.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-etherscan": "^2.1.8",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "bignumber.js": "^9.0.1",
+    "chai": "^4.3.4",
+    "chai-bn": "^0.3.0",
+    "csv-parse": "^4.16.3",
+    "dotenv": "^10.0.0",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.4.7",
+    "hardhat": "^2.9.2",
+    "hardhat-abi-exporter": "^2.3.0",
+    "hardhat-contract-sizer": "^2.1.1",
+    "hardhat-etherscan-abi": "^0.1.1",
+    "hardhat-gas-reporter": "^1.0.4",
+    "prettier": "^2.4.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.18"
+  },
+  "dependencies": {
+    "@appliedblockchain/chainlink-plugins-fund-link": "^0.0.3",
+    "@omnus/ice": "^1.0.0",
+    "@openzeppelin/contracts": "^4.4.2"
+  }
+}
