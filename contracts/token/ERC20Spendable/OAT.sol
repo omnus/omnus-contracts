@@ -11,7 +11,6 @@ pragma solidity ^0.8.13;
 *
 */
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@omnus/contracts/token/ERC20Spendable/ERC20Spendable.sol"; 
 
 contract OAT is ERC20Spendable {
@@ -20,7 +19,7 @@ contract OAT is ERC20Spendable {
   }
 
   function decimals() public pure override returns (uint8) {
-		return 10;
-	}
+    return 10;
+  }
 
 }

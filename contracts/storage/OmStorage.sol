@@ -33,43 +33,43 @@ abstract contract OmStorage is Context {
   * @dev mapping details for OMs held as immutable items in the compiled bytecode:
   *
   */
-  uint256 public immutable om1Length;
-  uint256 public immutable om2Length;
-  uint256 public immutable om3Length;
-  uint256 public immutable om4Length;
-  uint256 public immutable om5Length;
-  uint256 public immutable om6Length;
-  uint256 public immutable om7Length;
-  uint256 public immutable om8Length;
-  uint256 public immutable om9Length;
-  uint256 public immutable om10Length;
-  uint256 public immutable om11Length;
-  uint256 public immutable om12Length;
+  uint256 private immutable om1Length;
+  uint256 private immutable om2Length;
+  uint256 private immutable om3Length;
+  uint256 private immutable om4Length;
+  uint256 private immutable om5Length;
+  uint256 private immutable om6Length;
+  uint256 private immutable om7Length;
+  uint256 private immutable om8Length;
+  uint256 private immutable om9Length;
+  uint256 private immutable om10Length;
+  uint256 private immutable om11Length;
+  uint256 private immutable om12Length;
 
-  uint256 public immutable om1Modulo;
-  uint256 public immutable om2Modulo;
-  uint256 public immutable om3Modulo;
-  uint256 public immutable om4Modulo;
-  uint256 public immutable om5Modulo;
-  uint256 public immutable om6Modulo;
-  uint256 public immutable om7Modulo;
-  uint256 public immutable om8Modulo;
-  uint256 public immutable om9Modulo;
-  uint256 public immutable om10Modulo;
-  uint256 public immutable om11Modulo;
-  uint256 public immutable om12Modulo;
+  uint256 private immutable om1Modulo;
+  uint256 private immutable om2Modulo;
+  uint256 private immutable om3Modulo;
+  uint256 private immutable om4Modulo;
+  uint256 private immutable om5Modulo;
+  uint256 private immutable om6Modulo;
+  uint256 private immutable om7Modulo;
+  uint256 private immutable om8Modulo;
+  uint256 private immutable om9Modulo;
+  uint256 private immutable om10Modulo;
+  uint256 private immutable om11Modulo;
+  uint256 private immutable om12Modulo;
 
-  uint256 public immutable om2Divisor;
-  uint256 public immutable om3Divisor;
-  uint256 public immutable om4Divisor;
-  uint256 public immutable om5Divisor;
-  uint256 public immutable om6Divisor;
-  uint256 public immutable om7Divisor;
-  uint256 public immutable om8Divisor;
-  uint256 public immutable om9Divisor;
-  uint256 public immutable om10Divisor;
-  uint256 public immutable om11Divisor;
-  uint256 public immutable om12Divisor;
+  uint256 private immutable om2Divisor;
+  uint256 private immutable om3Divisor;
+  uint256 private immutable om4Divisor;
+  uint256 private immutable om5Divisor;
+  uint256 private immutable om6Divisor;
+  uint256 private immutable om7Divisor;
+  uint256 private immutable om8Divisor;
+  uint256 private immutable om9Divisor;
+  uint256 private immutable om10Divisor;
+  uint256 private immutable om11Divisor;
+  uint256 private immutable om12Divisor;
 
   /**
   *

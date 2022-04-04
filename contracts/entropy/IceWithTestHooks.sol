@@ -376,4 +376,79 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
     revert();
   }
 
+  /**
+  *
+  * @dev Test Routines - convenience routines for use in testing, for example to output and evaluate
+  * returned variables in hardhat. These are not deployed to mainnet.
+  *
+  */
+
+  /**
+  *
+  * @dev Repeat last entropy:
+  *
+  */
+  function repeatLastGetEntropy() public view returns(uint256 entropy_){
+    uint256 seed = getOm01();
+    uint256 modulo = getOm03();  
+    address rotatingSeedAddress = entropyItem[seed];
+    uint256 seedAddressBalance = rotatingSeedAddress.balance;
+    return(uint256(keccak256(abi.encode(seedAddressBalance, (block.timestamp % modulo)))));
+  }
+
+  /**
+  *
+  * @dev Repeat last light entropy
+  *
+  */
+  function repeatLastGetEntropyLight() public view returns(uint256 entropy_){
+    uint256 modulo = getOm03();
+    address seedAddress_ = address(uint160(getOm04()));
+    return(uint256(keccak256(abi.encode(seedAddress_.balance + (block.timestamp % modulo)))));
+  }
+
+  /**
+  *
+  * @dev Repeat last heavy entropy
+  *
+  */
+  function repeatLastGetEntropyHeavy() public view returns(uint256 entropy_){
+    uint256 counter = getOm02();
+    uint256 modulo = getOm03();  
+    uint256 loopEntropy;
+
+    for (uint i = 0; i < counter; i++){
+      loopEntropy = (uint256(keccak256(abi.encode(entropyItem[i].balance, (block.timestamp % modulo)))));
+      entropy_ = (uint256(keccak256(abi.encode(entropy_, loopEntropy))));
+    }
+
+    return(entropy_);
+  }
+
+  /**
+  *
+  * @dev Repeat last number in range:
+  *
+  */
+  function repeatLastGetNumberInRange(uint256 _upperBound) external view returns(uint256 entropy_){
+    return((((repeatLastGetEntropy() % 10 ** 18) * _upperBound) / (10 ** 18)) + 1);
+  }
+
+  /**
+  *
+  * @dev Repeat last light number in range
+  *
+  */
+  function repeatLastGetNumberInRangeLight(uint256 _upperBound) external view returns(uint256 entropy_){
+    return((((repeatLastGetEntropyLight() % 10 ** 18) * _upperBound) / (10 ** 18)) + 1);
+  }
+  
+  /**
+  *
+  * @dev Repeat last light number in range
+  *
+  */
+  function repeatLastGetNumberInRangeHeavy(uint256 _upperBound) external view returns(uint256 entropy_){
+    return((((repeatLastGetEntropyHeavy() % 10 ** 18) * _upperBound) / (10 ** 18)) + 1);
+  }
 }
