@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Omnus Contracts (contracts/token/RandomlyAllocated/RandomlyAllocatedERC721.sol)
+// https://omnuslab.com/randomallocation
 
 // RandomlyAllocatedERC721 (Example Implementation of RandomlyAllocated.sol).
 

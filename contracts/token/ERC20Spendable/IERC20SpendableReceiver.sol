@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Omnus Contracts (contracts/token/ERC20Spendable/ISpendableERC20.sol)
+// https://omnuslab.com/spendable
 
 // IERC20SpendableReceiver - Interface definition for contracts to implement spendable ERC20 functionality
 

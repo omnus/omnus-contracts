@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Omnus Contracts (contracts/entropy/IIce.sol)
+// https://omnuslab.com/icering
 
 // IIce (In Chain Entropy - Interface)
 

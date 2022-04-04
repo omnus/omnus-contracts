@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Omnus Contracts (contracts/token/ERC20Spendable/SpendableERC20Receiver.sol)
+// https://omnuslab.com/spendable
 
 // ERC20SpendableReceiver (Lightweight library for allowing contract interaction on token transfer).
 

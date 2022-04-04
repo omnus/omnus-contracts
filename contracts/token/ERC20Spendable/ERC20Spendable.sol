@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Omnus Contracts (contracts/token/ERC20Spendable/ERC20Spendable.sol)
+// https://omnuslab.com/spendable
 
 // ERC20Spendable 
 

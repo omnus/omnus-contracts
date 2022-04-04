@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Omnus Contracts (contracts/token/RandomlyAllocated/RandomlyAllocated.sol)
+// https://omnuslab.com/randomallocation
 
 // RandomlyAllocated (Allocate the items in a fixed length collection, calling IceRing to randomly assign each ID.
 

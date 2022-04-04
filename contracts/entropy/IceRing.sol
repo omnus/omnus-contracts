@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Omnus Contracts (contracts/entropy/IceRing.sol)
+// https://omnuslab.com/icering
 
 // ICERiNG (In Chain Entropy - Randomised Number Generator)
 

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Omnus Contracts (contracts/token/ERC20Spendable/OAT.sol) 
+// https://omnuslab.com/oat
 
-// OAT.sol - OAT Token
+// OAT - OAT Token
 
 pragma solidity ^0.8.13;
 
@@ -19,7 +20,7 @@ contract OAT is ERC20Spendable {
   }
 
   function decimals() public pure override returns (uint8) {
-    return 10;
+    return 8;
   }
 
 }
