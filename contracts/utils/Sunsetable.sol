@@ -9,18 +9,20 @@ pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/utils/Context.sol";
 
 /**
- * @dev Contract module which allows children to implement an sunset
- * mechanism that can be triggered by an authorized account.
- *
- * This module is used through inheritance. It will make available the
- * modifiers `whenSun` and `whenMoon`, which can be applied to
- * the functions of your contract. Note that they will not be useable by
- * simply including this module, only once the modifiers are put in place.
- */
+*
+* @dev Contract module which allows children to implement an sunset
+* mechanism that can be triggered by an authorized account.
+*
+* This module is used through inheritance. It will make available the
+* modifiers `whenSun` and `whenMoon`, which can be applied to
+* the functions of your contract. Note that they will not be useable by
+* simply including this module, only once the modifiers are put in place.
+*
+*/
 abstract contract Sunsetable is Context {
     /**
-     * @dev Emitted when the sunset is triggered by `account`.
-     */
+    * @dev Emitted when the sunset is triggered by `account`.
+    */
     event Sunset(address account);
 
     /**

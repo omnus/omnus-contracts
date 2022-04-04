@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: MIT
-// Omnus Contracts (contracts/extensions/IceTestImplementer.sol)
+// Omnus Contracts (contracts/entropy/IceTestImplementer.sol)
+
+/**
+*
+* @dev - Example contract for implementing ICE calls.
+*
+*/
 
 pragma solidity ^0.8.13;
 
-import "./IceRing.sol";
+import "@omnus/contracts/entropy/IceRing.sol";
 
 contract IceTestImplementer is IceRing {
 

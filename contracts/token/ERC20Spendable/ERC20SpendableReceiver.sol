@@ -6,17 +6,26 @@
 pragma solidity ^0.8.13;
 
 /**
-* @dev ERC20SpendableReceiver
+*
+* @dev ERC20SpendableReceiver - library contract for an ERC20 extension to allow ERC20s to 
+* operate as 'spendable' items, i.e. a token that can trigger an action on another contract
+* at the same time as being transfered. Similar to ERC677 and the hooks in ERC777, but with more
+* of an empasis on interoperability (returned values) than ERC677 and specifically scoped interaction
+* rather than the general hooks of ERC777. 
+*
+* This library contract allows a smart contract to operate as a receiver of ERC20Spendable tokens.
+*
 */
 
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";   
-import "./IERC20SpendableReceiver.sol"; 
+import "@omnus/contracts/token/ERC20Spendable/IERC20SpendableReceiver.sol"; 
 
 /**
- * @dev Contract module which allows children to spend tokens in a way that a receiving contract
- * can interact.
- */
+*
+* @dev ERC20SpendableReceiver.
+*
+*/
 abstract contract ERC20SpendableReceiver is Context, Ownable, IERC20SpendableReceiver {
   
   address public immutable ERC20Spendable; 
@@ -24,14 +33,18 @@ abstract contract ERC20SpendableReceiver is Context, Ownable, IERC20SpendableRec
   event ERC20Received(address _caller, uint256 _tokenPaid, uint256[] _arguments);
 
   /** 
+  *
   * @dev must be passed the token contract for the payable ERC20:
+  *
   */ 
   constructor(address _ERC20Spendable) {
     ERC20Spendable = _ERC20Spendable;
   }
 
   /** 
-  * @dev Only allow authorised tokens:
+  *
+  * @dev Only allow authorised token:
+  *
   */ 
   modifier onlyERC20Spendable(address _caller) {
     require (_caller == ERC20Spendable, "Call from unauthorised caller");
@@ -39,7 +52,9 @@ abstract contract ERC20SpendableReceiver is Context, Ownable, IERC20SpendableRec
   }
 
   /** 
+  *
   * @dev function to be called on receive. Must be overriden, including the addition of a fee check, if required:
+  *
   */ 
   function receiveSpendableERC20(address _caller, uint256 _tokenPaid, uint256[] memory _arguments) external virtual onlyERC20Spendable(msg.sender) returns(bool, uint256[] memory) { 
     // Must be overriden 

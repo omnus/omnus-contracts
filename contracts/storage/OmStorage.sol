@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Omnus Contracts (contracts/storage/OmStorage.sol)
-
+ 
 // OmStorage (Gas efficient storage)
 
 pragma solidity ^0.8.13;
@@ -8,20 +8,31 @@ pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/utils/Context.sol";  
 
 /**
-  * @dev OM Storage
-  * 
-  * Allows the storage of multiple integers in a single uint256, allowing greatly reduced gas cost for storage.
-  * For example, rather than defining storage for 12 integers that need to be acccessed individualy, you could use 
-  * a single storage integer, which needs access only once.
-  *
-  * The contract stores a single uint256, the Network Unified Storage, or NUS. This NUS can be broken down into
-  * units of Operational Memory, called OMs. There can be up to 12 OM in a single NUS.
-  */
+* @dev OM Storage
+* 
+* Allows the storage of multiple integers in a single uint256, allowing greatly reduced gas cost for storage.
+* For example, rather than defining storage for 12 integers that need to be acccessed individualy, you could use 
+* a single storage integer, which needs access only once.
+*
+* The contract stores a single uint256, the Network Unified Storage, or NUS. This NUS can be broken down into
+* units of Operational Memory, called OMs. There can be up to 12 OM in a single NUS.
+*
+*/
 
 abstract contract OmStorage is Context {
 
+  /**
+  *
+  * @dev only storage is a single uint256, the NUS:
+  *
+  */
   uint256 public nus;
 
+  /**
+  *
+  * @dev mapping details for OMs held as immutable items in the compiled bytecode:
+  *
+  */
   uint256 public immutable om1Length;
   uint256 public immutable om2Length;
   uint256 public immutable om3Length;
@@ -60,6 +71,11 @@ abstract contract OmStorage is Context {
   uint256 public immutable om11Divisor;
   uint256 public immutable om12Divisor;
 
+  /**
+  *
+  * @dev The contstructor sets up the NUS with the modulo and divisor offsets:
+  *
+  */
   constructor(uint256 _om1Length, uint256 _om2Length, uint256 _om3Length, uint256 _om4Length, 
     uint256 _om5Length, uint256 _om6Length, uint256 _om7Length, uint256 _om8Length, uint256 _om9Length, 
     uint256 _om10Length, uint256 _om11Length, uint256 _om12Length) {
@@ -141,6 +157,11 @@ abstract contract OmStorage is Context {
     require(moduloExponent < 76, "Too wide");
   }
 
+  /**
+  *
+  * @dev getOmnn function calls return the value for that OM:
+  *
+  */
   function getOm01() public view returns(uint256 om1_) {
     return(om1Value(nus));
   }
@@ -178,6 +199,11 @@ abstract contract OmStorage is Context {
     return(om12Value(nus));
   }
 
+  /**
+  *
+  * @dev omnValue function calls decode a passed NUS value to the OM:
+  *
+  */
   function om1Value(uint256 _nus) internal view returns(uint256 om1_){
     if (om1Length == 0) return(0);
     return(_nus % om1Modulo);
@@ -239,7 +265,9 @@ abstract contract OmStorage is Context {
   }
 
   /**
-  * @dev Decode the om
+  *
+  * @dev Decode the full NUS into OMs
+  *
   */
   function decodeNus() public view returns(uint256 om1, uint256 om2, uint256 om3, uint256 om4, uint256 om5, 
   uint256 om6, uint256 om7, uint256 om8, uint256 om9, uint256 om10, uint256 om11, uint256 om12){
@@ -273,7 +301,9 @@ abstract contract OmStorage is Context {
   }
 
   /**
-  * @dev Encode the NUS
+  *
+  * @dev Encode the OMs to the NUS
+  *
   */
   function encodeNus(uint256 _om1, uint256 _om2, uint256 _om3, uint256 _om4, uint256 _om5, 
   uint256 _om6, uint256 _om7, uint256 _om8, uint256 _om9, uint256 _om10, uint256 _om11, uint256 _om12) public {
@@ -282,7 +312,9 @@ abstract contract OmStorage is Context {
   }
 
   /**
+  *
   * @dev Sum variables
+  *
   */
   function sumOmNus(uint256 _om1, uint256 _om2, uint256 _om3, uint256 _om4, uint256 _om5, 
   uint256 _om6, uint256 _om7, uint256 _om8, uint256 _om9, uint256 _om10, uint256 _om11, uint256 _om12) view internal returns(uint256 nus_) {
@@ -313,7 +345,9 @@ abstract contract OmStorage is Context {
   }        
 
   /**
-  * @dev Check for om overflow
+  *
+  * @dev Check for OM overflow
+  *
   */
   function checkOverflow(uint256 _om1, uint256 _om2, uint256 _om3, uint256 _om4, uint256 _om5, 
   uint256 _om6, uint256 _om7, uint256 _om8, uint256 _om9, uint256 _om10, uint256 _om11, uint256 _om12) view internal {

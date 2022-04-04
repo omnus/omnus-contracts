@@ -264,6 +264,29 @@ describe("IceRing On-chain RNG Functionality", function () {
       })
     })
 
+    describe("Modifying Treasury", function () {
+      it("Owner can modify treasury", async () => {
+        var tx1 = await hardhatICE
+          .connect(owner)
+          .setTreasury(treasury.address)
+        expect(tx1).to.emit(hardhatICE, "TreasurySet")
+        var receipt = await tx1.wait()
+        expect(receipt.events[0].args.treasury).to.equal(treasury.address)
+
+        const treasuryAddressParameter = await hardhatICE.treasury()
+        expect(treasuryAddressParameter).to.equal(treasury.address)
+        
+      })
+
+      it("Non-owner cannot modify treasury", async () => {
+        await expect(
+          hardhatICE.connect(addr1).setTreasury(addr1.address),
+        ).to.be.revertedWith("Ownable: caller is not the owner")
+        
+      })
+    })
+
+
     describe("Withdraw ERC20Spendable", function () {
       beforeEach(async function () {
         var tx1 = await hardhatICE
@@ -331,18 +354,33 @@ describe("IceRing On-chain RNG Functionality", function () {
 
       it("Owner can withdraw", async () => {
 
+        var tx1 = await hardhatICE
+          .connect(owner)
+          .setTreasury(treasury.address)
+        expect(tx1).to.emit(hardhatICE, "TreasurySet")
+        var receipt = await tx1.wait()
+        expect(receipt.events[0].args.treasury).to.equal(treasury.address)
+
         var currentBalance = BigInt(await hardhatOAT.balanceOf(owner.address))
 
         expect(currentBalance).to.equal(BigInt(9999999990000000000n))
+
+        currentBalance = BigInt(await hardhatOAT.balanceOf(treasury.address))
+
+        expect(currentBalance).to.equal(BigInt(0n))
 
         var tx1 = await hardhatICE
         .connect(owner)
         .withdrawERC20(hardhatOAT.address, 10000000000)
         expect(tx1).to.emit(hardhatICE, "Transfer")
 
-        var currentBalance = BigInt(await hardhatOAT.balanceOf(owner.address))
+        currentBalance = BigInt(await hardhatOAT.balanceOf(owner.address))
 
-        expect(currentBalance).to.equal(BigInt(10000000000000000000n))
+        expect(currentBalance).to.equal(BigInt(9999999990000000000n))
+
+        currentBalance = BigInt(await hardhatOAT.balanceOf(treasury.address))
+
+        expect(currentBalance).to.equal(BigInt(10000000000n))
        
       })
     })
@@ -600,7 +638,7 @@ describe("IceRing On-chain RNG Functionality", function () {
         var entropy = await hardhatICE.repeatLastGetEntropy()
         console.log(BigInt(entropy));
 
-        var args = await hardhatICE.getOmValues()
+        var args = await hardhatICE.getConfig()
         expect(args[2]).to.equal(10000001)
         expect(args[0]).to.equal(1)
 
@@ -612,7 +650,7 @@ describe("IceRing On-chain RNG Functionality", function () {
         var entropy2 = await hardhatICE.repeatLastGetEntropy()
         console.log(BigInt(entropy2));
 
-        var args2 = await hardhatICE.getOmValues()
+        var args2 = await hardhatICE.getConfig()
         expect(args2[2]).to.equal(10000002)
         expect(args2[0]).to.equal(2)
 
@@ -624,7 +662,7 @@ describe("IceRing On-chain RNG Functionality", function () {
         var entropy3 = await hardhatICE.repeatLastGetEntropy()
         console.log(BigInt(entropy3));
 
-        var args3 = await hardhatICE.getOmValues()
+        var args3 = await hardhatICE.getConfig()
         expect(args3[2]).to.equal(10000003)
         expect(args3[0]).to.equal(3)
 
@@ -636,7 +674,7 @@ describe("IceRing On-chain RNG Functionality", function () {
         var entropy4 = await hardhatICE.repeatLastGetEntropy()
         console.log(BigInt(entropy4));
 
-        var args4 = await hardhatICE.getOmValues()
+        var args4 = await hardhatICE.getConfig()
         expect(args4[2]).to.equal(10000004)
         expect(args4[0]).to.equal(1)
 
@@ -652,10 +690,21 @@ describe("IceRing On-chain RNG Functionality", function () {
         var entropy1 = await hardhatICE.repeatLastGetEntropy()
         console.log(BigInt(entropy1));
 
-        var args1 = await hardhatICE.getOmValues()
-        // modulo ot three as we have performed 3 balance lookups:
-        expect(args1[2]).to.equal(10000003)
+        var args1 = await hardhatICE.getConfig()
+        expect(args1[2]).to.equal(10000001)
         expect(args1[0]).to.equal(3)
+
+        var tx2 = await hardhatIceTester
+        .connect(owner)
+        .getEntropyHeavy(0)
+        expect(tx2).to.emit(hardhatICE, "entropyServed")
+
+        var entropy2 = await hardhatICE.repeatLastGetEntropy()
+        console.log(BigInt(entropy2));
+
+        var args2 = await hardhatICE.getConfig()
+        expect(args2[2]).to.equal(10000002)
+        expect(args2[0]).to.equal(3)
 
       })
     })
