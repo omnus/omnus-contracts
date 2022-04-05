@@ -55,7 +55,7 @@ import "@omnus/contracts/entropy/IIce.sol";
 import "@omnus/contracts/storage/OmStorage.sol"; 
 import "@omnus/contracts/token/ERC20Spendable/ERC20SpendableReceiver.sol"; 
 
-contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
+contract IceWithTestHooks is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   using SafeERC20 for IERC20;
   
   address public treasury;

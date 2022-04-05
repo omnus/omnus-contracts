@@ -307,7 +307,7 @@ abstract contract OmStorage is Context {
   *
   */
   function encodeNus(uint256 _om1, uint256 _om2, uint256 _om3, uint256 _om4, uint256 _om5, 
-  uint256 _om6, uint256 _om7, uint256 _om8, uint256 _om9, uint256 _om10, uint256 _om11, uint256 _om12) public {
+  uint256 _om6, uint256 _om7, uint256 _om8, uint256 _om9, uint256 _om10, uint256 _om11, uint256 _om12) internal {
     checkOverflow(_om1,_om2, _om3, _om4, _om5, _om6, _om7, _om8, _om9, _om10, _om11, _om12);
     nus = sumOmNus (_om1,_om2, _om3, _om4, _om5, _om6, _om7, _om8, _om9, _om10, _om11, _om12);      
   }
