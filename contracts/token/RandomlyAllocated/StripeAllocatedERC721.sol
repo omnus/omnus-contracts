@@ -26,9 +26,9 @@ contract StripeAllocatedERC721 is ERC721, StripeAllocated, Ownable {
   * @dev must be passed supply details, ERC20 payable contract and ice contract addresses, as well as entropy mode and fee (if any)
   *
   */
-  constructor(uint256 _supply, uint256 _stripeCount, address _ERC20SpendableContract, address _iceRing, uint256 _entropyMode, uint256 _fee) 
+  constructor(uint256 _supply, address _ERC20SpendableContract, address _iceRing, uint256 _entropyMode, uint256 _fee) 
     ERC721("RandoToken", "RDT") 
-    StripeAllocated(_supply, _stripeCount, _ERC20SpendableContract, _iceRing, _entropyMode, _fee) {
+    StripeAllocated(_supply, _ERC20SpendableContract, _iceRing, _entropyMode, _fee) {
     }
 
   /**

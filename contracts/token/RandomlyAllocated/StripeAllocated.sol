@@ -39,57 +39,60 @@ import "hardhat/console.sol";
 
 abstract contract StripeAllocated is Context, IceRing {
 
-  // Max stripes is 255 and max items per stripe is 255. Therefore max collection that can be allocated in this way is 65,025 items
-  uint16[] public stripes; // Array of stripes - Note max stripes is 255
-  uint8[] public items;   // Array of items - Note stripe size is 255 (or remainder if less than 255)
-  // One user per stripe will need to populate the items for that stripe. Store one uint32 here for everyone who doesn't iterate
-  // to a new stripe to offset this gas effect and keep things fair cost for all:
-  uint16[] public arrayOfFairness; 
+
+  uint16[] public stripes;
+  uint8[] public items;  
+
   uint256 public immutable entropyMode;
-  uint256 public immutable stripeWidth;
   uint256 public immutable finalStripe;
   uint256 public immutable finalStripeWidth;
   
   uint256 public fee;
   uint256 private stripeStartId;
 
-  uint256 private constant WIDTH_LIMIT = 255; // This is the max value for (items / stripes)
-  uint256 private constant STRIPE_LIMIT = 65535;
-
+  // Fixed stripe width (a stripe will be either this or the remainder items if the last stripe). 32 = one slot of uint8s:
+  uint256 private constant STRIPE_WIDTH = 32; 
+  // Maximum collection size of 51,200 (which equates to 1,600 stripes)
+  uint256 private constant COLLECTION_LIMIT = 51200;
+ 
   event FeeUpdated(uint256 oldFee, uint256 newFee);
 
   /**
   *
   * @dev must be passed supply details, ERC20 payable contract and ice contract addresses, as well as entropy mode and fee (if any)
   *
+  * Mainnet, ropsten and rinkeby deployments:
+  *     ERC20Spendable = 0x400A524420c464b9A8EBa65614F297B5478aD6F3
+  *     IceRing        = 0x445D1D7346d6f169BB3A7E41F1212FA45181e32b
   */
-  constructor(uint256 _supply, uint256 _stripes, address _ERC20SpendableContract, address _iceContract, uint256 _entropyMode, uint256 _fee)
+  constructor(uint256 _supply, address _ERC20SpendableContract, address _iceContract, uint256 _entropyMode, uint256 _fee)
     IceRing(_ERC20SpendableContract, _iceContract) {
     
+    require(_supply < (COLLECTION_LIMIT + 1),"Max supply of 51,200");
+
     entropyMode = _entropyMode;
     fee = _fee;
+
+    uint256 numberOfStripes = _supply / STRIPE_WIDTH;
+
+    finalStripeWidth = _supply % STRIPE_WIDTH;
     
-    // Determine how many IDs will be in each stripe:
-    stripeWidth = _supply / _stripes;
+    // If the supply didn't divide perfectly by the stripe width we have a remainder stripe
+    if (finalStripeWidth != 0) {
+      // Add one to the numberOfStripes to include the finalStripe:
+      numberOfStripes += 1;
+    }
 
-    // Anything more than the ARRAY_LIMIT will overflow
-    require(stripeWidth < (WIDTH_LIMIT + 1),"Supply divided by number of stripes must be 255 or less");
-    require((_stripes < (STRIPE_LIMIT + 1)) && (_stripes > 0),"Number of stripes must be 1 to 65,535");
-
-    // Work out details of the final stripe (may have a remainder to process).
-    // final stripe ID is stripe count -1 as we start at 0:
-    finalStripe = _stripes - 1;
-
-    finalStripeWidth = _supply % stripeWidth;
+    finalStripe = numberOfStripes - 1;
 
     // Load the stripe tracking array
-    for(uint256 i = 0; i < _stripes;) {
+    for(uint256 i = 0; i < numberOfStripes;) {
       stripes.push(uint16(i));
       unchecked{ i++; }
     }
 
     //Prime the items array:
-    changeStripes();
+    changeStripe();
     
   }
 
@@ -129,7 +132,7 @@ abstract contract StripeAllocated is Context, IceRing {
   */
   function _getItem() internal returns(uint256 allocatedItem_) { //mode: 0 = light, 1 = standard, 2 = heavy
 
-    require(stripes.length != 0 || items.length != 0, "ID allocation exhausted");
+    require(items.length != 0 || stripes.length != 0, "ID allocation exhausted");
 
     // Get our randomly assigned item from remaining items in the array. Actual Index is the returned number 
     // in range minus 1, as our array index starts at 0, not 1: 
@@ -154,19 +157,21 @@ abstract contract StripeAllocated is Context, IceRing {
       items[allocatedIndex] = items[lastItemIndex];
     }
 
-    // Remove the last position of the array:
-    items.pop();
+    // If this was the last item in the current array we need to change stripes. DON'T pop the last item in
+    // the array as that will tear it down, and the refund does not offset the cost to setup the array
+    // anew. Much more gas efficient to overwrite the existing single item array with the new one:
+    if (items.length > 1) {
+      // Remove the last position of the array:
+      items.pop();
 
-    // See if we need a new stripe, but only if there is a new stripe waiting:
-    if (stripes.length != 0) {
-      if (items.length == 0) {
-        changeStripes();
-      }
-      else {
-        //Store an item in the array of fairness:
-        arrayOfFairness.push(1);
+    }
+    else {
+      // Get a new stripe, but only if there is a new stripe waiting:
+      if (stripes.length != 0) {
+        changeStripe();  
       }
     }
+
     return(allocatedItem_);
   }
 
@@ -175,7 +180,7 @@ abstract contract StripeAllocated is Context, IceRing {
   * @dev Select a new stripe:
   *
   */
-  function changeStripes() internal {
+  function changeStripe() internal {
     
     uint256 allocatedIndex;
 
@@ -186,35 +191,25 @@ abstract contract StripeAllocated is Context, IceRing {
 
     uint256 chosenStripe = uint256(stripes[allocatedIndex]);
 
-    uint256 selectedStripeWidth;
-
     // Populate the items for this stripe. First check if it's the last stripe.
     // A width of 0 for the final stripe means that the supply has divided perfectly
     // by the number of stripes, and the final stripe is therefore a fill width:
     if (chosenStripe == finalStripe && finalStripeWidth != 0) {
-      selectedStripeWidth = finalStripeWidth;
+
+      uint8[] memory tempArray = new uint8[](finalStripeWidth);
+
+      for(uint8 i = 0; i < uint8(finalStripeWidth);) {
+        tempArray[i] = i;
+        unchecked{ i++; }
+      }
+
+      items = tempArray;
     }
     else{
-      selectedStripeWidth = stripeWidth;
+      items = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];
     }
 
-    // Example, width is 100 and we have stripe 3. Stripes before this will be:
-    // 0 = 0 to 99
-    // 1 = 100 to 199
-    // 2 = 200 to 299
-    // 3 = 300 to 399
-    // Therefore our starting ID is stripeNumber * stripeWidth
-
-    stripeStartId = chosenStripe * stripeWidth;
-
-    uint8[] memory tempArray = new uint8[](selectedStripeWidth);
-
-    for(uint8 i = 0; i < uint8(selectedStripeWidth);) {
-      tempArray[i] = i;
-      unchecked{ i++; }
-    }
-
-    items = tempArray;
+    stripeStartId = chosenStripe * STRIPE_WIDTH;
 
     uint256 lastStripeIndex = stripes.length - 1;
 
@@ -225,12 +220,6 @@ abstract contract StripeAllocated is Context, IceRing {
  
     // Remove the last position of the array:
     stripes.pop();
-
-    // Offset cost of this using stored gas:
-    for(uint256 i = 0; i < arrayOfFairness.length;) {
-      arrayOfFairness.pop;
-      unchecked{ i++; }
-    }
 
   }
 

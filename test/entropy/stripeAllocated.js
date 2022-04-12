@@ -1,8 +1,7 @@
 const { expect } = require("chai")
 const d = new Date();
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
-const ERC721_STRIPED_SUPPLY = 1000;
-const ERC721_STRIPE_COUNT = 255;
+const ERC721_STRIPED_SUPPLY = 320;
 
 const LIGHT_NUM_IN_RANGE = 0;
 const STANDARD_NUM_IN_RANGE = 1;
@@ -42,7 +41,7 @@ describe("IceRing On-chain RNG Functionality", function () {
     hardhatFakeOAT = await OAT.deploy()
 
     const ERC721Striped = await ethers.getContractFactory("StripeAllocatedERC721")
-    hardhatStripedERC721 = await ERC721Striped.deploy(ERC721_STRIPED_SUPPLY, ERC721_STRIPE_COUNT, hardhatOAT.address, hardhatICE.address, LIGHT_NUM_IN_RANGE, NO_FEE)
+    hardhatStripedERC721 = await ERC721Striped.deploy(ERC721_STRIPED_SUPPLY, hardhatOAT.address, hardhatICE.address, LIGHT_NUM_IN_RANGE, NO_FEE)
 
     const IceTest = await ethers.getContractFactory("IceTestImplementer")
     hardhatIceTester = await IceTest.deploy(hardhatOAT.address, hardhatICE.address)
@@ -100,8 +99,8 @@ describe("IceRing On-chain RNG Functionality", function () {
           var tx1 = await hardhatStripedERC721
           .connect(owner)
           .randomlyAllocatedMint()  
-          //var receipt = await tx1.wait()
-          //console.log(BigInt(receipt.events[0].args.tokenId))   
+          var receipt = await tx1.wait()
+          console.log(BigInt(receipt.events[0].args.tokenId))   
           
         }
 
