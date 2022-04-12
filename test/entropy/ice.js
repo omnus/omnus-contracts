@@ -635,8 +635,8 @@ describe("IceRing On-chain RNG Functionality", function () {
         .getEntropyStandard(0)
         expect(tx1).to.emit(hardhatICE, "entropyServed")
 
-        var entropy = await hardhatICE.repeatLastGetEntropy()
-        console.log(BigInt(entropy));
+        //var entropy = await hardhatICE.repeatLastGetEntropy()
+        //console.log(BigInt(entropy));
 
         var args = await hardhatICE.getConfig()
         expect(args[2]).to.equal(10000001)
@@ -647,8 +647,8 @@ describe("IceRing On-chain RNG Functionality", function () {
         .getEntropyStandard(0)
         expect(tx2).to.emit(hardhatICE, "entropyServed")
 
-        var entropy2 = await hardhatICE.repeatLastGetEntropy()
-        console.log(BigInt(entropy2));
+        //var entropy2 = await hardhatICE.repeatLastGetEntropy()
+        //console.log(BigInt(entropy2));
 
         var args2 = await hardhatICE.getConfig()
         expect(args2[2]).to.equal(10000002)
@@ -659,8 +659,8 @@ describe("IceRing On-chain RNG Functionality", function () {
         .getEntropyStandard(0)
         expect(tx3).to.emit(hardhatICE, "entropyServed")
 
-        var entropy3 = await hardhatICE.repeatLastGetEntropy()
-        console.log(BigInt(entropy3));
+        //var entropy3 = await hardhatICE.repeatLastGetEntropy()
+        //console.log(BigInt(entropy3));
 
         var args3 = await hardhatICE.getConfig()
         expect(args3[2]).to.equal(10000003)
@@ -671,8 +671,8 @@ describe("IceRing On-chain RNG Functionality", function () {
         .getEntropyStandard(0)
         expect(tx4).to.emit(hardhatICE, "entropyServed")
 
-        var entropy4 = await hardhatICE.repeatLastGetEntropy()
-        console.log(BigInt(entropy4));
+        //var entropy4 = await hardhatICE.repeatLastGetEntropy()
+        //console.log(BigInt(entropy4));
 
         var args4 = await hardhatICE.getConfig()
         expect(args4[2]).to.equal(10000004)
@@ -687,8 +687,8 @@ describe("IceRing On-chain RNG Functionality", function () {
         .getEntropyHeavy(0)
         expect(tx1).to.emit(hardhatICE, "entropyServed")
 
-        var entropy1 = await hardhatICE.repeatLastGetEntropy()
-        console.log(BigInt(entropy1));
+        //var entropy1 = await hardhatICE.repeatLastGetEntropy()
+        //console.log(BigInt(entropy1));
 
         var args1 = await hardhatICE.getConfig()
         expect(args1[2]).to.equal(10000001)
@@ -699,8 +699,8 @@ describe("IceRing On-chain RNG Functionality", function () {
         .getEntropyHeavy(0)
         expect(tx2).to.emit(hardhatICE, "entropyServed")
 
-        var entropy2 = await hardhatICE.repeatLastGetEntropy()
-        console.log(BigInt(entropy2));
+        //var entropy2 = await hardhatICE.repeatLastGetEntropy()
+        //console.log(BigInt(entropy2));
 
         var args2 = await hardhatICE.getConfig()
         expect(args2[2]).to.equal(10000002)
@@ -750,8 +750,8 @@ describe("IceRing On-chain RNG Functionality", function () {
           .getEntropyStandard(0)
           expect(tx1).to.emit(hardhatICE, "entropyServed")
 
-          var entropy = await hardhatICE.repeatLastGetEntropy()
-          console.log(BigInt(entropy));
+          //var entropy = await hardhatICE.repeatLastGetEntropy()
+          //console.log(BigInt(entropy));
 
         }
       })
@@ -798,8 +798,8 @@ describe("IceRing On-chain RNG Functionality", function () {
           .getEntropyLight(0)
           expect(tx1).to.emit(hardhatICE, "entropyServed")
 
-          var entropy = await hardhatICE.repeatLastGetEntropyLight()
-          console.log(BigInt(entropy));
+          //var entropy = await hardhatICE.repeatLastGetEntropyLight()
+          //console.log(BigInt(entropy));
 
         }
       })
@@ -846,8 +846,8 @@ describe("IceRing On-chain RNG Functionality", function () {
           .getEntropyHeavy(0)
           expect(tx1).to.emit(hardhatICE, "entropyServed")
 
-          var entropy = await hardhatICE.repeatLastGetEntropyHeavy()
-          console.log(BigInt(entropy));
+          //var entropy = await hardhatICE.repeatLastGetEntropyHeavy()
+          //console.log(BigInt(entropy));
 
         }
       })
@@ -894,8 +894,8 @@ describe("IceRing On-chain RNG Functionality", function () {
           .connect(owner)
           .getNumberInRangeStandard(100, 0)
   
-          var entropy = await hardhatICE.repeatLastGetNumberInRange(100)
-          console.log(BigInt(entropy), ","); 
+          //var entropy = await hardhatICE.repeatLastGetNumberInRange(100)
+          //console.log(BigInt(entropy), ","); 
 
         }
       })
@@ -941,8 +941,8 @@ describe("IceRing On-chain RNG Functionality", function () {
           .connect(owner)
           .getNumberInRangeLight(100, 0)
   
-          var entropy = await hardhatICE.repeatLastGetNumberInRangeLight(100)
-          console.log(BigInt(entropy), ","); 
+          //var entropy = await hardhatICE.repeatLastGetNumberInRangeLight(100)
+          //console.log(BigInt(entropy), ","); 
 
         }
       })
@@ -988,8 +988,8 @@ describe("IceRing On-chain RNG Functionality", function () {
           .connect(owner)
           .getNumberInRangeHeavy(100, 0)
   
-          var entropy = await hardhatICE.repeatLastGetNumberInRangeHeavy(100)
-          console.log(BigInt(entropy), ","); 
+          //var entropy = await hardhatICE.repeatLastGetNumberInRangeHeavy(100)
+          //console.log(BigInt(entropy), ","); 
 
         }
       })
