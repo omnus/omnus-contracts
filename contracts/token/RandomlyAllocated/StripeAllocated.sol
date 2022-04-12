@@ -129,15 +129,7 @@ abstract contract StripeAllocated is Context, IceRing {
   */
   function _getItem() internal returns(uint256 allocatedItem_) { //mode: 0 = light, 1 = standard, 2 = heavy
 
-    // See if we need a new strips:
-
-    if (items.length == 0) {
-      changeStripes();
-    }
-    else {
-      //Store an item in the array of fairness:
-      arrayOfFairness.push(1);
-    }
+    require(stripes.length != 0 || items.length != 0, "ID allocation exhausted");
 
     // Get our randomly assigned item from remaining items in the array. Actual Index is the returned number 
     // in range minus 1, as our array index starts at 0, not 1: 
@@ -165,6 +157,16 @@ abstract contract StripeAllocated is Context, IceRing {
     // Remove the last position of the array:
     items.pop();
 
+    // See if we need a new stripe, but only if there is a new stripe waiting:
+    if (stripes.length != 0) {
+      if (items.length == 0) {
+        changeStripes();
+      }
+      else {
+        //Store an item in the array of fairness:
+        arrayOfFairness.push(1);
+      }
+    }
     return(allocatedItem_);
   }
 
@@ -174,8 +176,7 @@ abstract contract StripeAllocated is Context, IceRing {
   *
   */
   function changeStripes() internal {
-    require(stripes.length != 0, "ID allocation exhausted");
-
+    
     uint256 allocatedIndex;
 
     if (entropyMode == 0) allocatedIndex = (_getNumberInRangeLight(stripes.length, fee) - 1);
