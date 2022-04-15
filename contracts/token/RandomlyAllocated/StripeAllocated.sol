@@ -54,6 +54,8 @@ abstract contract StripeAllocated is Context, IceRing {
   uint256 private constant STRIPE_WIDTH = 32; 
   // Maximum collection size of 51,200 (which equates to 1,600 stripes)
   uint256 private constant COLLECTION_LIMIT = 51200;
+
+  mapping (uint256 => uint256) gasStore;
  
   event FeeUpdated(uint256 oldFee, uint256 newFee);
 
@@ -163,7 +165,6 @@ abstract contract StripeAllocated is Context, IceRing {
     if (items.length > 1) {
       // Remove the last position of the array:
       items.pop();
-
     }
     else {
       // Get a new stripe, but only if there is a new stripe waiting:

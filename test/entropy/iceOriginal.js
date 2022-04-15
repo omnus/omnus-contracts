@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const d = new Date();
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
-const ERC721_SUPPLY = 1200;
+const ERC721_SUPPLY = 100;
 const LIGHT_NUM_IN_RANGE = 0;
 const STANDARD_NUM_IN_RANGE = 1;
 const HEAVY_NUM_IN_RANGE = 2;
@@ -40,7 +40,7 @@ describe("IceRing On-chain RNG Functionality", function () {
     hardhatFakeOAT = await OAT.deploy()
 
     const ERC721 = await ethers.getContractFactory("RandomlyAllocatedERC721")
-    hardhatRandomERC721 = await ERC721.deploy(ERC721_SUPPLY, hardhatOAT.address, hardhatICE.address, STANDARD_NUM_IN_RANGE, NO_FEE)
+    hardhatRandomERC721 = await ERC721.deploy(ERC721_SUPPLY, hardhatOAT.address, hardhatICE.address, LIGHT_NUM_IN_RANGE, NO_FEE)
 
     const IceTest = await ethers.getContractFactory("IceTestImplementer")
     hardhatIceTester = await IceTest.deploy(hardhatOAT.address, hardhatICE.address)
@@ -386,7 +386,7 @@ describe("IceRing On-chain RNG Functionality", function () {
     })
   })
 
-  context.only("IceRing Functions", function () {
+  context("IceRing Functions", function () {
 
     describe("Requesting standard entropy", function () {
 
@@ -481,7 +481,7 @@ describe("IceRing On-chain RNG Functionality", function () {
           .connect(owner)
           .randomlyAllocatedMint()  
           var receipt = await tx1.wait()
-          console.log(BigInt(receipt.events[2].args.tokenId))   
+          console.log(BigInt(receipt.events[0].args.tokenId))   
 
         }
 
@@ -493,6 +493,45 @@ describe("IceRing On-chain RNG Functionality", function () {
 
       })
 
+      it("Multiload of items works", async () => {
+
+        const ERC721 = await ethers.getContractFactory("RandomlyAllocatedERC721")
+        hardhatRandomERC721LargeSupply = await ERC721.deploy(5050, hardhatOAT.address, hardhatICE.address, LIGHT_NUM_IN_RANGE, NO_FEE)
+        
+        var remainingSupply = await hardhatRandomERC721LargeSupply.connect(owner).remainingSupplyToLoad()
+        var continueLoad = await hardhatRandomERC721LargeSupply.connect(owner).continueLoadFromId()
+        var loadedItems = await hardhatRandomERC721LargeSupply.connect(owner)._remainingItems()
+        expect(remainingSupply).to.equal(2550)
+        expect(continueLoad).to.equal(2500)
+        expect(loadedItems).to.equal(2500)
+
+        await hardhatRandomERC721LargeSupply.connect(owner)._loadSupply()
+
+        remainingSupply = await hardhatRandomERC721LargeSupply.connect(owner).remainingSupplyToLoad()
+        continueLoad = await hardhatRandomERC721LargeSupply.connect(owner).continueLoadFromId()
+        loadedItems = await hardhatRandomERC721LargeSupply.connect(owner)._remainingItems()
+        expect(remainingSupply).to.equal(50)
+        expect(continueLoad).to.equal(5000)
+        expect(loadedItems).to.equal(5000)
+
+        await hardhatRandomERC721LargeSupply.connect(owner)._loadSupply()
+
+        remainingSupply = await hardhatRandomERC721LargeSupply.connect(owner).remainingSupplyToLoad()
+        continueLoad = await hardhatRandomERC721LargeSupply.connect(owner).continueLoadFromId()
+        loadedItems = await hardhatRandomERC721LargeSupply.connect(owner)._remainingItems()
+        expect(remainingSupply).to.equal(0)
+        expect(continueLoad).to.equal(5050)
+        expect(loadedItems).to.equal(5050)
+
+        await expect(
+          hardhatRandomERC721LargeSupply
+          .connect(owner)
+          ._loadSupply()  
+        ).to.be.revertedWith("Load complete");
+
+        console.log(await hardhatRandomERC721LargeSupply.connect(owner)._itemsArray())
+
+      })
     })
 
     describe("TokenID Random Assignment - payment required", function () {
@@ -547,7 +586,7 @@ describe("IceRing On-chain RNG Functionality", function () {
 
         await hardhatOAT
         .connect(owner)
-        .transfer(hardhatRandomERC721.address, 20000000000)
+        .transfer(hardhatRandomERC721.address, 10000000000)
 
         var tx1 = await hardhatRandomERC721
         .connect(owner)
