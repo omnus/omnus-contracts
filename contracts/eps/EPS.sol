@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-// EPSProxy Contracts v1.8.0 (epsproxy/contracts/EPS.sol)
+// EPSProxy Contracts v1.9.0 (epsproxy/contracts/EPS.sol)
 
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.13;
 
 /**
  * @dev Implementation of the EPS register interface.
@@ -19,6 +19,7 @@ interface EPS {
   event RecordDeleted(string initiator, address indexed nominator, address indexed proxy, address indexed delivery, uint256 timestamp, uint256 provider);
   // Emitted when the register fee is set:
   event RegisterFeeSet(uint256 indexed registerFee);
+  event RegisterFeeOatSet(uint256 indexed registerFee);
   // Emitted when the treasury address is set:
   event TreasuryAddressSet(address indexed treasuryAddress);
   // Emitted on withdrawal to the treasury address:

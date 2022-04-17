@@ -16,8 +16,7 @@ pragma solidity ^0.8.13;
 */
 
 import "@openzeppelin/contracts/utils/Context.sol";  
-import "@omnus/contracts/entropy/IceRing.sol";
-import "hardhat/console.sol";
+import "../../entropy/IceRing.sol";
 
 /**
 *
@@ -43,7 +42,7 @@ abstract contract RandomlyAllocated is Context, IceRing {
   mapping (uint16 => uint8[]) childArray;
   
   uint256 public immutable entropyMode;
-  uint256 public fee;
+  
   // In theory this approach could handle a collection of 2,097,120 items. But as that would required 65,535 parentArray entries
   // we would need to load these items in batches. Set a notional parent array max size of 1,600 items, which gives a collection
   // max size of 51,200 (1,600 * 32):
@@ -51,31 +50,22 @@ abstract contract RandomlyAllocated is Context, IceRing {
   // Each child array holds 32 items (1 slot wide):
   uint256 private constant CHILD_ARRAY_WIDTH = 32;
 
-  event FeeUpdated(uint256 oldFee, uint256 newFee);
-
   /**
   *
   * @dev must be passed supply details, ERC20 payable contract and ice contract addresses, as well as entropy mode and fee (if any)
   *
   */
-  constructor(uint16 _supply, address _ERC20SpendableContract, address _iceContract, uint256 _entropyMode, uint256 _fee)
-    IceRing(_ERC20SpendableContract, _iceContract) {
+  constructor(uint16 _supply, address _ERC20SpendableContract, address _iceContract, uint256 _entropyMode, uint256 _ethFee, uint256 _oatFee)
+    IceRing(_ERC20SpendableContract, _iceContract, _ethFee, _oatFee) {
     
     require(_supply < (COLLECTION_LIMIT + 1),"Max supply of 51,200");
 
-    console.log(_supply);
-
     entropyMode = _entropyMode;
-    fee = _fee;
 
     uint256 numberOfParentEntries = _supply / CHILD_ARRAY_WIDTH;
 
-    console.log(numberOfParentEntries);
-
     uint256 finalChildWidth = _supply % CHILD_ARRAY_WIDTH;
 
-    console.log(finalChildWidth);
-    
     // If the supply didn't divide perfectly by the child width we have a remainder child at the end. We will load this now
     // so that all subsequent child loads can safely assume a full width load:
     if (finalChildWidth != 0) {
@@ -95,8 +85,6 @@ abstract contract RandomlyAllocated is Context, IceRing {
       numberOfParentEntries += 1;
 
     }
-
-    console.log(numberOfParentEntries);
 
     // Now load the parent array:
     for(uint256 i = 0; i < numberOfParentEntries;) {
@@ -132,17 +120,6 @@ abstract contract RandomlyAllocated is Context, IceRing {
   */
   function _childItemsArray(uint16 _index) external view returns(uint8[] memory) {
     return(childArray[_index]);
-  }
-
-  /**
-  *
-  * @dev Update fee. Implement an external call that calls this in child contract, likely ownerOnly.
-  *
-  */
-  function _updateFee(uint256 _fee) internal {
-    uint256 oldFee = fee;
-    fee = _fee;
-    emit FeeUpdated(oldFee, _fee);
   }
 
   /**
@@ -203,11 +180,13 @@ abstract contract RandomlyAllocated is Context, IceRing {
   *
   */
   function _getEntropy(uint256 _upperBound) internal returns(uint256 allocatedIndex_) { //mode: 0 = light, 1 = standard, 2 = heavy
-    if (entropyMode == 0) allocatedIndex_ = (_getNumberInRangeLight(_upperBound, fee) - 1);
-    else if (entropyMode == 1) allocatedIndex_ = (_getNumberInRangeStandard(_upperBound, fee) - 1);
-    else if (entropyMode == 2) allocatedIndex_ = (_getNumberInRangeHeavy(_upperBound, fee) - 1);
+    
+    if (entropyMode == 0) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_LIGHT, _upperBound) - 1);
+    else if (entropyMode == 1) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_STANDARD, _upperBound) - 1);
+    else if (entropyMode == 2) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_HEAVY, _upperBound) - 1);
     else revert("Unrecognised entropy mode");
     return(allocatedIndex_);
+
   }
 
 }

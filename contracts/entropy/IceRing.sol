@@ -51,6 +51,7 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/utils/Context.sol";  
 import "@omnus/contracts/token/ERC20Spendable/IERC20Spendable.sol";
+import "@omnus/contracts/entropy/IIce.sol"; 
 
 /**
 *
@@ -65,72 +66,79 @@ abstract contract IceRing is Context {
   uint256 constant ENTROPY_LIGHT = 3;
   uint256 constant ENTROPY_STANDARD = 4;
   uint256 constant ENTROPY_HEAVY = 5;
+  
+  uint256 public ethFee;
+  uint256 public oatFee;
 
   IERC20Spendable public immutable ERC20SpendableContract; 
-  address public immutable IceContract; 
+  address public immutable IceAddress; 
+  IIce public immutable IceContract;
+
+  event ETHFeeUpdated(uint256 oldFee, uint256 newFee);
+  event OATFeeUpdated(uint256 oldFee, uint256 newFee);
 
   /**
   *
   * @dev - Constructor - both the ICE contract and the ERC20Spendable contract need to be provided:
   *
   */
-  constructor(address _ERC20SpendableContract, address _iceContract) {
+  constructor(address _ERC20SpendableContract, address _IceAddress, uint256 _ethFee, uint256 _oatFee) {
     ERC20SpendableContract = IERC20Spendable(_ERC20SpendableContract); 
-    IceContract = _iceContract;
+    IceAddress = _IceAddress;
+    IceContract = IIce(IceAddress);
+    ethFee = _ethFee;
+    oatFee = _oatFee;
+  }
+
+
+  /**
+  *
+  * @dev Update fee. Implement an external call that calls this in child contract, likely ownerOnly.
+  *
+  */
+  function _updateETHFee(uint256 _ethFee) internal {
+    uint256 oldETHFee = ethFee;
+    ethFee = _ethFee;
+    emit ETHFeeUpdated(oldETHFee, _ethFee);
   }
 
   /**
   *
-  * @dev Get a number in a range, light mode
+  * @dev Update fee. Implement an external call that calls this in child contract, likely ownerOnly.
   *
   */
-  function _getNumberInRangeLight(uint256 _upperBound, uint256 _fee) internal returns(uint256 numberInRange_) { //mode: 0 = light, 1 = standard, 2 = heavy
-    return(_getNumberInRange(NUMBER_IN_RANGE_LIGHT, _upperBound, _fee));
+  function _updateOATFee(uint256 _oatFee) internal {
+    uint256 oldOATFee = oatFee;
+    oatFee = _oatFee;
+    emit OATFeeUpdated(oldOATFee, oatFee);
   }
 
   /**
   *
-  * @dev Get a number in a range, standard mode
+  * @dev Get entropy, access direct:
   *
   */
-  function _getNumberInRangeStandard(uint256 _upperBound, uint256 _fee) internal returns(uint256 numberInRange_) { //mode: 0 = light, 1 = standard, 2 = heavy
-    return(_getNumberInRange(NUMBER_IN_RANGE_STANDARD, _upperBound, _fee));
+  function _getEntropyETH(uint256 _mode) internal returns(uint256 ice_) {
+
+    (bool success, uint256 result) = IceContract.iceRingEntropy{value: ethFee}(_mode);
+    
+    require(success, "Ice call failed"); 
+
+    return(result);
   }
 
   /**
   *
-  * @dev Get a number in a range, heavy mode
+  * @dev Get number in range, access direct:
   *
   */
-  function _getNumberInRangeHeavy(uint256 _upperBound, uint256 _fee) internal returns(uint256 numberInRange_) { //mode: 0 = light, 1 = standard, 2 = heavy
-    return(_getNumberInRange(NUMBER_IN_RANGE_HEAVY, _upperBound, _fee));
-  }
+  function _getNumberInRangeETH(uint256 _mode, uint256 _upperBound) internal returns(uint256 ice_) {
 
-  /**
-  *
-  * @dev Get full uint256 of entropy, light mode
-  *
-  */
-  function _getFullEntropyLight(uint256 _fee) internal returns(uint256 entropy_) { //mode: 3 = light, 4 = standard, 5 = heavy
-    return(_getEntropy(ENTROPY_LIGHT, _fee));
-  }
+    (bool success, uint256 result) = IceContract.iceRingNumberInRange{value: ethFee}(_mode, _upperBound);
+    
+    require(success, "Ice call failed"); 
 
-  /**
-  *
-  * @dev Get full uint256 of entropy, standard mode
-  *
-  */
-  function _getFullEntropyStandard(uint256 _fee) internal returns(uint256 entropy_) { //mode: 3 = light, 4 = standard, 5 = heavy
-    return(_getEntropy(ENTROPY_STANDARD, _fee));
-  }
-
-  /**
-  *
-  * @dev Get full uint256 of entropy, heavy mode
-  *
-  */
-  function _getFullEntropyHeavy(uint256 _fee) internal returns(uint256 entropy_) { //mode: 3 = light, 4 = standard, 5 = heavy
-    return(_getEntropy(ENTROPY_HEAVY, _fee));
+    return(result);
   }
 
   /**
@@ -138,28 +146,28 @@ abstract contract IceRing is Context {
   * @dev Get entropy, access through the ERC20 payable relay:
   *
   */
-  function _getEntropy(uint256 _mode, uint256 _fee) internal returns(uint256 ice_) {
+  function _getEntropyOAT(uint256 _mode) internal returns(uint256 ice_) {
 
     uint256[] memory arguments = new uint256[](1);
     arguments[0] = _mode;
 
-    ice_ = ERC20SpendableContract.spendToken(IceContract, _fee, arguments)[0]; 
+    ice_ = ERC20SpendableContract.spendToken(IceAddress, oatFee, arguments)[0]; 
 
     return(ice_);
   }
-
+  
   /**
   *
   * @dev Get number in range, access through the ERC20 payable relay:
   *
   */
-  function _getNumberInRange(uint256 _mode, uint256 _upperBound, uint256 _fee) internal returns(uint256 ice_) {
+  function _getNumberInRangeOAT(uint256 _mode, uint256 _upperBound) internal returns(uint256 ice_) {
 
     uint256[] memory arguments = new uint256[](2);
     arguments[0] = _mode;
     arguments[1] = _upperBound;
 
-    ice_ = ERC20SpendableContract.spendToken(IceContract, _fee, arguments)[0]; 
+    ice_ = ERC20SpendableContract.spendToken(IceAddress, oatFee, arguments)[0]; 
 
     return(ice_);
   }

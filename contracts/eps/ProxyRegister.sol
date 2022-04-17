@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
-// EPSProxy Contracts v1.8.0 (epsproxy/contracts/ProxyRegister.sol)
+// EPSProxy Contracts v1.9.0 (epsproxy/contracts/ProxyRegister.sol)
 
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.13;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@epsproxy/contracts/EPS.sol";
+import "@omnus/contracts/token/ERC20Spendable/ERC20SpendableReceiver.sol"; 
 
 /**
  * @dev The EPS Register contract.
  */
-contract ProxyRegister is EPS, Ownable {
+contract ProxyRegister is EPS, Ownable, ERC20SpendableReceiver {
 
   struct Record {
     address nominator;
@@ -16,6 +17,7 @@ contract ProxyRegister is EPS, Ownable {
   }
 
   uint256 private registerFee;
+  uint256 private registerFeeOat;
   address private treasury;
 
   mapping (address => address) nominatorToProxy;
@@ -26,9 +28,14 @@ contract ProxyRegister is EPS, Ownable {
   */
   constructor(
     uint256 _registerFee,
-    address _treasury
-  ) {
+    uint256 _registerFeeOat,
+    address _treasury,
+    address _ERC20Spendable
+  ) 
+    ERC20SpendableReceiver(_ERC20Spendable) 
+  {
     setRegisterFee(_registerFee);
+    setRegisterFeeOat(_registerFeeOat);
     setTreasuryAddress(_treasury);
   }
 
@@ -232,6 +239,20 @@ contract ProxyRegister is EPS, Ownable {
   }
 
   /**
+  * @dev The nominator initiaties a proxy entry, paying with ERC20
+  */
+  function receiveSpendableERC20(address _caller, uint256 _tokenPaid, uint256[] memory _arguments) override external onlyERC20Spendable(msg.sender) returns(bool, uint256[] memory) { 
+    address _proxy = address(uint160(_arguments[0]));
+    require (_proxy != address(0), "Proxy address must be provided");
+    require (_proxy != _caller, "Proxy address cannot be the same as Nominator address");
+    require(_tokenPaid == registerFeeOat, "Register fee must be paid");
+    nominatorToProxy[_caller] = _proxy;
+    emit NominationMade(_caller, _proxy, block.timestamp, _arguments[1]);   
+    uint256[] memory returnResults = new uint256[](1);
+    return(true, returnResults); 
+  }
+
+  /**
   * @dev Proxy accepts nomination
   */
   function acceptNomination(address _nominator, address _delivery, uint256 _provider) external isNotCurrentProxy(msg.sender) isNotCurrentProxy(_nominator) {
@@ -293,6 +314,17 @@ contract ProxyRegister is EPS, Ownable {
     require(_registerFee != registerFee, "No change to register fee");
     registerFee = _registerFee;
     emit RegisterFeeSet(registerFee);
+    return true;
+  }
+
+  /**
+  * @dev set the OAT fee for initiating a registration (accepting a proxy, updating the delivery address and deletions will always be free)
+  */
+  function setRegisterFeeOat(uint256 _registerFeeOat) public onlyOwner returns (bool)
+  {
+    require(_registerFeeOat != registerFeeOat, "No change to register fee");
+    registerFeeOat = _registerFeeOat;
+    emit RegisterFeeOatSet(_registerFeeOat);
     return true;
   }
 

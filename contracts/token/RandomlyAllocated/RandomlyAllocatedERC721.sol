@@ -26,18 +26,28 @@ contract RandomlyAllocatedERC721 is ERC721, RandomlyAllocated, Ownable {
   * @dev must be passed supply details, ERC20 payable contract and ice contract addresses, as well as entropy mode and fee (if any)
   *
   */
-  constructor(uint16 _supply, address _ERC20SpendableContract, address _iceRing, uint256 _entropyMode, uint256 _fee) 
+  constructor(uint16 _supply, address _ERC20SpendableContract, address _iceRing, uint256 _entropyMode, uint256 _ethFee, uint256 _oatFee) 
     ERC721("RandoToken", "RDT") 
-    RandomlyAllocated(_supply, _ERC20SpendableContract, _iceRing, _entropyMode, _fee) {
+    RandomlyAllocated(_supply, _ERC20SpendableContract, _iceRing, _entropyMode, _ethFee, oatFee) {
     }
+
 
   /**
   *
   * @dev Update fee:
   *
   */
-  function updateFee(uint256 _fee) external onlyOwner {
-    _updateFee(_fee);
+  function updateETHFee(uint256 _ethFee) external onlyOwner {
+    _updateETHFee(_ethFee);
+  }
+
+  /**
+  *
+  * @dev Update fee:
+  *
+  */
+  function updateOATFee(uint256 _oatFee) external onlyOwner {
+    _updateOATFee(_oatFee);
   }
 
   /**

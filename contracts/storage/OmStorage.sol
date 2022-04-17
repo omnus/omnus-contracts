@@ -352,28 +352,29 @@ abstract contract OmStorage is Context {
   */
   function checkOverflow(uint256 _om1, uint256 _om2, uint256 _om3, uint256 _om4, uint256 _om5, 
   uint256 _om6, uint256 _om7, uint256 _om8, uint256 _om9, uint256 _om10, uint256 _om11, uint256 _om12) view internal {
-    require((_om1  / om1Modulo == 0), "om1 overflow");
+    
+    require((_om1  / (10 ** om1Length) == 0),  "om1 overflow");
     if (om2Length == 0) return;
-    require((_om2  / om2Modulo == 0), "om2 overflow");
+    require((_om2  / (10 ** om2Length) == 0),  "om2 overflow");
     if (om3Length == 0) return;
-    require((_om3  / om3Modulo == 0), "om3 overflow");
+    require((_om3  / (10 ** om3Length) == 0),  "om3 overflow");
     if (om4Length == 0) return;
-    require((_om4  / om4Modulo == 0), "om4 overflow");
+    require((_om4  / (10 ** om4Length) == 0),  "om4 overflow");   
     if (om5Length == 0) return;
-    require((_om5  / om5Modulo == 0), "om5 overflow");
+    require((_om5  / (10 ** om5Length) == 0),  "om5 overflow"); 
     if (om6Length == 0) return;
-    require((_om6  / om6Modulo == 0), "om6 overflow");
+    require((_om6  / (10 ** om6Length) == 0),  "om6 overflow");
     if (om7Length == 0) return;
-    require((_om7  / om7Modulo == 0), "om7 overflow");
+    require((_om7  / (10 ** om7Length) == 0),  "om7 overflow");
     if (om8Length == 0) return;
-    require((_om8  / om8Modulo == 0), "om8 overflow");
+    require((_om8  / (10 ** om8Length) == 0),  "om8 overflow");
     if (om9Length == 0) return;
-    require((_om9  / om9Modulo == 0), "om9 overflow");
+    require((_om9  / (10 ** om9Length) == 0),  "om9 overflow");
     if (om10Length == 0) return;
-    require((_om10 / om10Modulo == 0), "om10 overflow");
+    require((_om10 / (10 ** om10Length) == 0), "om10 overflow");
     if (om11Length == 0) return;
-    require((_om11 / om11Modulo == 0), "om11 overflow");
+    require((_om11 / (10 ** om11Length) == 0), "om11 overflow");
     if (om2Length == 0) return;
-    require((_om12 / om12Modulo == 0), "om12 overflow"); 
+    require((_om12 / (10 ** om12Length) == 0), "om12 overflow"); 
   }
 }

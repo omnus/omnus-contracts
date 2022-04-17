@@ -45,8 +45,7 @@ pragma solidity ^0.8.13;
 *                                                             ===================    
 *                   Use at your own risk, obvs. I've tried hard to make this good quality entropy, but whether random exists is
 *                   a question for philosophers not solidity devs. If there is a lot at stake on whatever it is you are doing 
-*                   please DYOR on what option is best for you. There are no guarantees the entropy seeds here will be maintained
-*                   (I mean, no one might ever use this). No liability is accepted etc.
+*                   please DYOR on what option is best for you. No liability is accepted etc.
 */
 
 /**
@@ -60,15 +59,24 @@ interface IIce {
   event EntropyUpdated (uint256 _index, address _newAddress, address _oldAddress); 
   event EntropyCleared (); 
   event EntropyServed(address seedAddress, uint256 seedValue, uint256 timeStamp, uint256 modulo, uint256 entropy);
-  event FeeUpdated(uint256 oldFee, uint256 newFee);
+  event BaseFeeUpdated(uint256 oldFee, uint256 newFee);
+  event ETHExponentUpdated(uint256 oldETHExponent, uint256 newETHExponent);
+  event OATExponentUpdated(uint256 oldOATExponent, uint256 newOATExponent);
   event TreasurySet(address treasury);
   event TokenWithdrawal(uint256 indexed withdrawal, address indexed tokenAddress);
+  event EthWithdrawal(uint256 indexed withdrawal);
 
+  function iceRingEntropy(uint256 _mode) external payable returns(bool, uint256 entropy_);
+  function iceRingNumberInRange(uint256 _mode, uint256 _upperBound) external payable returns(bool, uint256 numberInRange_);
   function viewEntropyAddress(uint256 _index) external view returns (address entropyAddress);
   function addEntropy(address _entropyAddress) external;
   function updateEntropy(uint256 _index, address _newAddress) external;
   function deleteAllEntropy() external;
-  function updateFee(uint256 _fee) external;
-  function getConfig() external view returns(uint256 seedIndex_, uint256 counter_, uint256 modulo_, address seedAddress_, uint256 fee_);
+  function updateBaseFee(uint256 _newBasefee) external;
+  function updateOATFeeExponent(uint256 _newOatExponent) external;
+  function updateETHFeeExponent(uint256 _newEthExponent) external;
+  function getConfig() external view returns(uint256 seedIndex_, uint256 counter_, uint256 modulo_, address seedAddress_, uint256 baseFee_, uint256 ethExponent_, uint256 oatExponent_);
+  function getEthFee() external view returns (uint256 ethFee);
+  function getOatFee() external view returns (uint256 oatFee); 
   function validateProof(uint256 _seedValue, uint256 _modulo, uint256 _timeStamp, uint256 _entropy) external pure returns(bool valid);
 }

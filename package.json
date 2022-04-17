@@ -11,7 +11,7 @@
   "license": "ISC",
   "devDependencies": {
     "@chainlink/contracts": "^0.2.2",
-    "@epsproxy/contracts": "^1.8.0",
+    "@epsproxy/contracts": "^1.9.0",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^2.1.8",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@appliedblockchain/chainlink-plugins-fund-link": "^0.0.3",
-    "@omnus/contracts": "^1.6.0",
+    "@omnus/contracts": "^1.13.0",
     "@omnus/ice": "^1.0.0",
     "@openzeppelin/contracts": "^4.4.2"
   }

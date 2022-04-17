@@ -45,8 +45,7 @@ pragma solidity ^0.8.13;
 *                                                             ===================    
 *                   Use at your own risk, obvs. I've tried hard to make this good quality entropy, but whether random exists is
 *                   a question for philosophers not solidity devs. If there is a lot at stake on whatever it is you are doing 
-*                   please DYOR on what option is best for you. There are no guarantees the entropy seeds here will be maintained
-*                   (I mean, no one might ever use this). No liability is accepted etc.
+*                   please DYOR on what option is best for you. No liability is accepted etc.
 */
 
 import "@openzeppelin/contracts/access/Ownable.sol";  
@@ -58,6 +57,13 @@ import "@omnus/contracts/token/ERC20Spendable/ERC20SpendableReceiver.sol";
 contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   using SafeERC20 for IERC20;
   
+  uint256 constant NUMBER_IN_RANGE_LIGHT = 0;
+  uint256 constant NUMBER_IN_RANGE_STANDARD = 1;
+  uint256 constant NUMBER_IN_RANGE_HEAVY = 2;
+  uint256 constant ENTROPY_LIGHT = 3;
+  uint256 constant ENTROPY_STANDARD = 4;
+  uint256 constant ENTROPY_HEAVY = 5;
+
   address public treasury;
   /**
   *
@@ -78,7 +84,7 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   */
   constructor(address _ERC20Spendable)
     ERC20SpendableReceiver(_ERC20Spendable)
-    OmStorage(3, 3, 8, 49, 12, 0, 0, 0, 0, 0, 0, 0) {
+    OmStorage(2, 2, 8, 49, 10, 2, 2, 0, 0, 0, 0, 0) {
     encodeNus(0, 0, 10000000, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
 
@@ -88,16 +94,13 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   *
   */
   function receiveSpendableERC20(address, uint256 _tokenPaid, uint256[] memory _arguments) override external onlyERC20Spendable(msg.sender) returns(bool, uint256[] memory) { 
-    uint256 seedIndex;
-    uint256 counter;
-    uint256 modulo;
-    address seedAddress;
-    uint256 fee; 
     
-    (seedIndex, counter, modulo, seedAddress, fee) = getConfig();
+    (uint256 seedIndex, uint256 counter, uint256 modulo, address seedAddress, uint256 feeBase, uint256 ethExponent, uint256 oatExponent) = getConfig();
 
-    if (fee != 0) {
-      require(_tokenPaid == fee, "Incorrect ERC20 payment");
+    uint256 oatFee = feeBase * (10 ** oatExponent);
+
+    if (oatFee != 0) {
+      require(_tokenPaid == oatFee, "Incorrect ERC20 payment");
     }
 
     uint256[] memory returnResults = new uint256[](1);
@@ -107,17 +110,17 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
     * @dev Number in range request, send with light / normal / heavy designation:
     *
     */
-    if (_arguments[0] == 0) {
-      returnResults[0] = getNumberInRangeLight(_arguments[1], seedIndex, counter, modulo, seedAddress, fee); 
+    if (_arguments[0] == NUMBER_IN_RANGE_LIGHT) {
+      returnResults[0] = getNumberInRangeLight(_arguments[1], seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent); 
       return(true, returnResults);
     }
-    if (_arguments[0] == 1) {
-      returnResults[0] = getNumberInRange(_arguments[1], seedIndex, counter, modulo, seedAddress, fee); 
+    if (_arguments[0] == NUMBER_IN_RANGE_STANDARD) {
+      returnResults[0] = getNumberInRange(_arguments[1], seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent); 
       return(true, returnResults);
     }
 
-    if (_arguments[0] == 2) {
-      returnResults[0] = getNumberInRangeHeavy(_arguments[1], seedIndex, counter, modulo, seedAddress, fee); 
+    if (_arguments[0] == NUMBER_IN_RANGE_HEAVY) {
+      returnResults[0] = getNumberInRangeHeavy(_arguments[1], seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent); 
       return(true, returnResults);
     }
 
@@ -126,22 +129,105 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
     * @dev Standard entropy request, send with light / normal / heavy designation:
     *
     */
-    if (_arguments[0] == 3) {
-      returnResults[0] = getEntropyLight(seedIndex, counter, modulo, seedAddress, fee); 
+    if (_arguments[0] == ENTROPY_LIGHT) {
+      returnResults[0] = getEntropyLight(seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent); 
       return(true, returnResults);
     }
-    if (_arguments[0] == 4) {
-      returnResults[0] = getEntropy(seedIndex, counter, modulo, seedAddress, fee); 
+    if (_arguments[0] == ENTROPY_STANDARD) {
+      returnResults[0] = getEntropy(seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent); 
       return(true, returnResults);
     }
 
-    if (_arguments[0] == 5) {
-      returnResults[0] = getEntropyHeavy(seedIndex, counter, modulo, seedAddress, fee); 
+    if (_arguments[0] == ENTROPY_HEAVY) {
+      returnResults[0] = getEntropyHeavy(seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent); 
       return(true, returnResults);
     }  
 
     return(false, returnResults);
   }
+
+  /**
+  *
+  * @dev Standard entry point for direct call, number in range
+  *
+  */
+  function iceRingNumberInRange(uint256 _mode, uint256 _upperBound) external payable returns(bool, uint256 numberInRange_) {  
+
+    (uint256 seedIndex, uint256 counter, uint256 modulo, address seedAddress, uint256 feeBase, uint256 ethExponent, uint256 oatExponent) = getConfig();
+
+    uint256 ethFee = feeBase * (10 ** ethExponent);
+
+    if (ethFee != 0) {
+      require(msg.value == ethFee, "Incorrect ETH payment");
+    }
+
+    /**
+    *
+    * @dev Number in range request, send with light / normal / heavy designation:
+    *
+    */
+    if (_mode == NUMBER_IN_RANGE_LIGHT) {
+
+      return(true, getNumberInRangeLight(_upperBound, seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent));
+    
+    }
+    if (_mode == NUMBER_IN_RANGE_STANDARD) {
+
+      return(true, getNumberInRange(_upperBound, seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent));
+
+    }
+
+    if (_mode == NUMBER_IN_RANGE_HEAVY) {
+
+      return(true, getNumberInRangeHeavy(_upperBound, seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent)); 
+
+    }
+
+    return(false, 0);
+  }
+
+  /**
+  *
+  * @dev Standard entry point for direct call, entropy
+  *
+  */
+  function iceRingEntropy(uint256 _mode) external payable returns(bool, uint256 entropy_) { 
+
+    (uint256 seedIndex, uint256 counter, uint256 modulo, address seedAddress, uint256 feeBase, uint256 ethExponent, uint256 oatExponent) = getConfig();
+
+    uint256 ethFee = feeBase * (10 ** ethExponent);
+
+    if (ethFee != 0) {
+      require(msg.value == ethFee, "Incorrect ETH payment");
+    }
+
+    /**
+    *
+    * @dev Standard entropy request, send with light / normal / heavy designation:
+    *
+    */
+    if (_mode == ENTROPY_LIGHT) {
+
+      return(true, getEntropyLight(seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent));
+
+    }
+
+    if (_mode == ENTROPY_STANDARD) {
+
+      return(true, getEntropy(seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent));
+
+    }
+
+    if (_mode == ENTROPY_HEAVY) {
+
+      return(true, getEntropyHeavy(seedIndex, counter, modulo, seedAddress, feeBase, ethExponent, oatExponent));
+
+    }  
+
+    return(false, 0);
+
+  }
+
 
   /**
   *
@@ -151,6 +237,24 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   function viewEntropyAddress(uint256 _index) external view returns (address entropyAddress) {
     return (entropyItem[_index]) ;
   }
+
+  /**
+  *
+  * @dev get ETH fee
+  *
+  */
+  function getEthFee() external view returns (uint256 ethFee) {
+    return (getOm05() * (10 ** getOm06())) ;
+  }
+
+  /**
+  *
+  * @dev get OAT fee
+  *
+  */
+  function getOatFee() external view returns (uint256 oatFee) {
+    return (getOm05() * (10 ** getOm07())) ;
+  }
   
   /**
   *
@@ -158,12 +262,14 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   *
   */
   function addEntropy(address _entropyAddress) external onlyOwner {
-    (uint256 seed, uint256 counter, uint256 modulo, address seedAddress, uint256 fee) = getConfig(); 
+
+    (uint256 seedIndex, uint256 counter, uint256 modulo, address seedAddress, uint256 feeBase, uint256 ethExponent, uint256 oatExponent) = getConfig();
+
     counter += 1;
     entropyItem[counter] = _entropyAddress;
     seedAddress = _entropyAddress;
     emit EntropyAdded(_entropyAddress);
-    encodeNus(seed, counter, modulo, uint256(uint160(seedAddress)), fee, 0, 0, 0, 0, 0, 0, 0);
+    encodeNus(seedIndex, counter, modulo, uint256(uint160(seedAddress)), feeBase, ethExponent, oatExponent, 0, 0, 0, 0, 0);
   }
 
   /**
@@ -183,26 +289,55 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   *
   */
   function deleteAllEntropy() external onlyOwner {
-    (uint256 seed, uint256 counter, uint256 modulo, address seedAddress, uint256 fee) = getConfig();
+    (uint256 seedIndex, uint256 counter, uint256 modulo, address seedAddress, uint256 feeBase, uint256 ethExponent, uint256 oatExponent) = getConfig();
+
     require(counter > 0, "No entropy defined");
     for (uint i = 1; i <= counter; i++){
       delete entropyItem[i];
     }
     counter = 0;
     seedAddress = address(0);
-    encodeNus(seed, counter, modulo, uint256(uint160(seedAddress)), fee, 0, 0, 0, 0, 0, 0, 0);
+    encodeNus(seedIndex, counter, modulo, uint256(uint160(seedAddress)), feeBase, ethExponent, oatExponent, 0, 0, 0, 0, 0);
     emit EntropyCleared();
   }
 
   /**
   *
-  * @dev Owner can updte the fee
+  * @dev Owner can update the base fee
   *
   */
-  function updateFee(uint256 _fee) external onlyOwner {
-    (uint256 seed, uint256 counter, uint256 modulo, address seedAddress, uint256 oldFee) = getConfig(); 
-    encodeNus(seed, counter, modulo, uint256(uint160(seedAddress)), _fee, 0, 0, 0, 0, 0, 0, 0);
-    emit FeeUpdated(oldFee, _fee);
+  function updateBaseFee(uint256 _newBaseFee) external onlyOwner {
+    (uint256 seedIndex, uint256 counter, uint256 modulo, address seedAddress, uint256 oldFeeBase, uint256 ethExponent, uint256 oatExponent) = getConfig(); 
+    
+    encodeNus(seedIndex, counter, modulo, uint256(uint160(seedAddress)), _newBaseFee, ethExponent, oatExponent, 0, 0, 0, 0, 0);
+    
+    emit BaseFeeUpdated(oldFeeBase, _newBaseFee);
+  }
+
+  /**
+  *
+  * @dev Owner can update the ETH fee exponent
+  *
+  */
+  function updateETHFeeExponent(uint256 _newEthExponent) external onlyOwner {
+    (uint256 seedIndex, uint256 counter, uint256 modulo, address seedAddress, uint256 feeBase, uint256 oldEthExponent, uint256 oatExponent) = getConfig(); 
+    
+    encodeNus(seedIndex, counter, modulo, uint256(uint160(seedAddress)), feeBase, _newEthExponent, oatExponent, 0, 0, 0, 0, 0);
+    
+    emit ETHExponentUpdated(oldEthExponent, _newEthExponent);
+  }
+
+  /**
+  *
+  * @dev Owner can update the OAT fee exponent
+  *
+  */
+  function updateOATFeeExponent(uint256 _newOatExponent) external onlyOwner {
+    (uint256 seedIndex, uint256 counter, uint256 modulo, address seedAddress, uint256 feeBase, uint256 ethExponent, uint256 oldOatExponent) = getConfig(); 
+    
+    encodeNus(seedIndex, counter, modulo, uint256(uint160(seedAddress)), feeBase, ethExponent, _newOatExponent, 0, 0, 0, 0, 0);
+    
+    emit OATExponentUpdated(oldOatExponent, _newOatExponent);
   }
 
   /** 
@@ -220,7 +355,7 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   * @dev Create hash of entropy seeds:
   *
   */
-  function _hashEntropy(bool _lightMode, uint256 seed, uint256 counter, uint256 modulo, address seedAddress, uint256 fee) internal returns(uint256 hashedEntropy_){
+  function _hashEntropy(bool lightMode, uint256 seedIndex, uint256 counter, uint256 modulo, address seedAddress, uint256  feeBase, uint256 ethExponent, uint256 oatExponent) internal returns(uint256 hashedEntropy_){
 
     if (modulo >= 99999999) {
       modulo = 10000000;
@@ -229,34 +364,34 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
       modulo = modulo + 1; 
     } 
 
-    if (_lightMode) {
+    if (lightMode) {
       hashedEntropy_ = (uint256(keccak256(abi.encode(seedAddress.balance + (block.timestamp % modulo)))));
     }
     else {
-      if (seed >= counter) {
-      seed = 1;
+      if (seedIndex >= counter) {
+      seedIndex = 1;
       }  
       else {
-        seed += 1; 
+        seedIndex += 1; 
       } 
-      address rotatingSeedAddress = entropyItem[seed];
+      address rotatingSeedAddress = entropyItem[seedIndex];
       uint256 seedAddressBalance = rotatingSeedAddress.balance;
       hashedEntropy_ = (uint256(keccak256(abi.encode(seedAddressBalance, (block.timestamp % modulo)))));
       emit EntropyServed(rotatingSeedAddress, seedAddressBalance, block.timestamp, modulo, hashedEntropy_); 
     }         
 
-    encodeNus(seed, counter, modulo, uint256(uint160(seedAddress)), fee, 0, 0, 0, 0, 0, 0, 0);
+    encodeNus(seedIndex, counter, modulo, uint256(uint160(seedAddress)), feeBase, ethExponent, oatExponent, 0, 0, 0, 0, 0);
       
     return(hashedEntropy_);
   }
 
   /**
   *
-  * @dev Find the number within a range:
+  * @dev Find a number within a range:
   *
   */
-  function _numberInRange(uint256 _upperBound, bool _lightMode, uint256 _seed, uint256 _counter, uint256 _modulo, address _seedAddress, uint256 _fee) internal returns(uint256 numberWithinRange){
-    return((((_hashEntropy(_lightMode, _seed, _counter, _modulo, _seedAddress, _fee) % 10 ** 18) * _upperBound) / (10 ** 18)) + 1);
+  function _numberInRange(uint256 _upperBound, bool _lightMode, uint256 _seed, uint256 _counter, uint256 _modulo, address _seedAddress, uint256 _feeBase, uint256 _ethExponent, uint256 _oatExponent) internal returns(uint256 numberWithinRange){
+    return((((_hashEntropy(_lightMode, _seed, _counter, _modulo, _seedAddress, _feeBase, _ethExponent, _oatExponent) % 10 ** 18) * _upperBound) / (10 ** 18)) + 1);
   }
 
   /**
@@ -264,11 +399,11 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   * @dev Get OM values from the NUS
   *
   */
-  function getConfig() public view returns(uint256 seedIndex_, uint256 counter_, uint256 modulo_, address seedAddress_, uint256 fee_){
+  function getConfig() public view returns(uint256 seedIndex_, uint256 counter_, uint256 modulo_, address seedAddress_, uint256 feeBase_, uint256 ethExponent_, uint256 oatExponent_){
     
     uint256 nusInMemory = nus;
 
-    return(om1Value(nusInMemory), om2Value(nusInMemory), om3Value(nusInMemory), address(uint160(om4Value(nusInMemory))), om5Value(nusInMemory));
+    return(om1Value(nusInMemory), om2Value(nusInMemory), om3Value(nusInMemory), address(uint160(om4Value(nusInMemory))), om5Value(nusInMemory), om6Value(nusInMemory), om7Value(nusInMemory));
   }
 
   /**
@@ -276,8 +411,8 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   * @dev Return a full uint256 of entropy:
   *
   */
-  function getEntropy(uint256 _seed, uint256 _counter, uint256 _modulo, address _seedAddress, uint256 _fee) internal returns(uint256 entropy_){
-    entropy_ = _hashEntropy(false, _seed, _counter, _modulo, _seedAddress, _fee); 
+  function getEntropy(uint256 _seed, uint256 _counter, uint256 _modulo, address _seedAddress, uint256  _feeBase, uint256 _ethExponent, uint256 _oatExponent) internal returns(uint256 entropy_){
+    entropy_ = _hashEntropy(false, _seed, _counter, _modulo, _seedAddress, _feeBase, _ethExponent, _oatExponent); 
     return(entropy_);
   }
 
@@ -288,8 +423,8 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   * sources. The normal (non-light) version increments through the seed mapping.
   *
   */
-  function getEntropyLight(uint256 _seedIndex,uint256 _counter, uint256 _modulo, address _seedAddress, uint256 _fee) internal returns(uint256 entropy_){
-    entropy_ = _hashEntropy(true, _seedIndex, _counter, _modulo, _seedAddress, _fee); 
+  function getEntropyLight(uint256 _seedIndex,uint256 _counter, uint256 _modulo, address _seedAddress, uint256 _feeBase, uint256 _ethExponent, uint256 _oatExponent) internal returns(uint256 entropy_){
+    entropy_ = _hashEntropy(true, _seedIndex, _counter, _modulo, _seedAddress, _feeBase, _ethExponent, _oatExponent); 
     return(entropy_);
   }
 
@@ -300,12 +435,12 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   * the block.timestamp altered by an increasing modulo.
   *
   */
-  function getEntropyHeavy(uint256, uint256 _counter, uint256 _modulo, address _seedAddress, uint256 _fee) internal returns(uint256 entropy_){
+  function getEntropyHeavy(uint256, uint256 _counter, uint256 _modulo, address _seedAddress, uint256  _feeBase, uint256 _ethExponent, uint256 _oatExponent) internal returns(uint256 entropy_){
     
     uint256 loopEntropy;
 
     for (uint i = 0; i < _counter; i++){
-      loopEntropy = _hashEntropy(false, i, _counter, _modulo, _seedAddress, _fee); 
+      loopEntropy = _hashEntropy(false, i, _counter, _modulo, _seedAddress, _feeBase, _ethExponent, _oatExponent); 
       entropy_ = (uint256(keccak256(abi.encode(entropy_, loopEntropy))));
     }
     return(entropy_);
@@ -317,8 +452,9 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   * @dev Return a number within a range (1 to upperBound):
   *
   */
-  function getNumberInRange(uint256 _upperBound, uint256 _seedIndex, uint256 _counter, uint256 _modulo, address _seedAddress, uint256 _fee) internal returns(uint256 numberInRange_){
-    numberInRange_ = _numberInRange(_upperBound, false, _seedIndex, _counter, _modulo, _seedAddress, _fee);
+  function getNumberInRange(uint256 _upperBound, uint256 _seedIndex, uint256 _counter, uint256 _modulo, 
+      address _seedAddress, uint256 _feeBase, uint256 _ethExponent, uint256 _oatExponent) internal returns(uint256 numberInRange_){
+    numberInRange_ = _numberInRange(_upperBound, false, _seedIndex, _counter, _modulo, _seedAddress, _feeBase, _ethExponent, _oatExponent);
     return(numberInRange_);
   }
 
@@ -329,8 +465,9 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   * sources. The normal (non-light) version increments through the seed mapping.
   *
   */
-  function getNumberInRangeLight(uint256 _upperBound, uint256 _seedIndex, uint256 _counter, uint256 _modulo, address _seedAddress, uint256 _fee) internal returns(uint256 numberInRange_){
-    numberInRange_ = _numberInRange(_upperBound, true, _seedIndex, _counter, _modulo, _seedAddress, _fee);
+  function getNumberInRangeLight(uint256 _upperBound, uint256 _seedIndex, uint256 _counter, uint256 _modulo, 
+      address _seedAddress, uint256 _feeBase, uint256 _ethExponent, uint256 _oatExponent) internal returns(uint256 numberInRange_){
+    numberInRange_ = _numberInRange(_upperBound, true, _seedIndex, _counter, _modulo, _seedAddress, _feeBase, _ethExponent, _oatExponent);
     return(numberInRange_);
   }
 
@@ -339,8 +476,9 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
   * @dev Return a number within a range (1 to upperBound) - heavy mode.
   *
   */
-  function getNumberInRangeHeavy(uint256 _upperBound, uint256 _seedIndex, uint256 _counter, uint256 _modulo, address _seedAddress, uint256 _fee) internal returns(uint256 numberInRange_){
-    numberInRange_ = ((((getEntropyHeavy(_seedIndex, _counter, _modulo, _seedAddress, _fee) % 10 ** 18) * _upperBound) / (10 ** 18)) + 1);
+  function getNumberInRangeHeavy(uint256 _upperBound, uint256 _seedIndex, uint256 _counter, uint256 _modulo, 
+      address _seedAddress, uint256 _feeBase, uint256 _ethExponent, uint256 _oatExponent) internal returns(uint256 numberInRange_){
+    numberInRange_ = ((((getEntropyHeavy(_seedIndex, _counter, _modulo, _seedAddress, _feeBase, _ethExponent, _oatExponent) % 10 ** 18) * _upperBound) / (10 ** 18)) + 1);
     return(numberInRange_);
   }
 
@@ -364,13 +502,23 @@ contract Ice is Ownable, OmStorage, ERC20SpendableReceiver, IIce {
     emit TokenWithdrawal(_amountToWithdraw, address(_token));
   }
 
+  /** 
+  * @dev Owner can withdraw eth to treasury:
+  */ 
+  function withdrawETH(uint256 _amount) external onlyOwner returns (bool) {
+    (bool success, ) = treasury.call{value: _amount}("");
+    require(success, "Transfer failed.");
+    emit EthWithdrawal(_amount); 
+    return true;
+  }
+
   /**
   *
-  * @dev Revert all eth payments or unknown function calls
+  * @dev Revert all eth payments not from the owner or unknown function calls
   *
   */
   receive() external payable {
-    revert();
+    require(msg.sender == owner(), "Only owner can fund contract");
   }
 
   fallback() external payable {

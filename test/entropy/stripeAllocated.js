@@ -44,9 +44,9 @@ describe("IceRing On-chain RNG Functionality", function () {
     hardhatStripedERC721 = await ERC721Striped.deploy(ERC721_STRIPED_SUPPLY, hardhatOAT.address, hardhatICE.address, LIGHT_NUM_IN_RANGE, NO_FEE)
 
     const IceTest = await ethers.getContractFactory("IceTestImplementer")
-    hardhatIceTester = await IceTest.deploy(hardhatOAT.address, hardhatICE.address)
+    hardhatIceTester = await IceTest.deploy(false, hardhatOAT.address, hardhatICE.address, NO_FEE, NO_FEE)
 
-    hardhatIceTesterWithFakeOat = await IceTest.deploy(hardhatFakeOAT.address, hardhatICE.address)
+    hardhatIceTesterWithFakeOat = await IceTest.deploy(false, hardhatFakeOAT.address, hardhatICE.address, NO_FEE, NO_FEE)
 
   })
 
@@ -76,7 +76,7 @@ describe("IceRing On-chain RNG Functionality", function () {
     })
   });
 
-  context.only("Stripe Allocation Functions", function () {
+  context("Stripe Allocation Functions", function () {
 
       describe("TokenID Random Assignment", function () {
 
