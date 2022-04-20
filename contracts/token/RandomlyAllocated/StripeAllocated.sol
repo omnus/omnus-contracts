@@ -46,8 +46,7 @@ abstract contract StripeAllocated is Context, IceRing {
   uint256 public immutable entropyMode;
   uint256 public immutable finalStripe;
   uint256 public immutable finalStripeWidth;
-  
-  uint256 public fee;
+
   uint256 private stripeStartId;
 
   // Fixed stripe width (a stripe will be either this or the remainder items if the last stripe). 32 = one slot of uint8s:
@@ -65,15 +64,14 @@ abstract contract StripeAllocated is Context, IceRing {
   *
   * Mainnet, ropsten and rinkeby deployments:
   *     ERC20Spendable = 0x400A524420c464b9A8EBa65614F297B5478aD6F3
-  *     IceRing        = 0x445D1D7346d6f169BB3A7E41F1212FA45181e32b
+  *     IceRing        = 0x7257b57cc14a749b75e1f073c15132f7ac893e57
   */
-  constructor(uint256 _supply, address _ERC20SpendableContract, address _iceContract, uint256 _entropyMode, uint256 _fee)
-    IceRing(_ERC20SpendableContract, _iceContract) {
+  constructor(uint256 _supply, address _ERC20SpendableContract, address _iceContract, uint256 _entropyMode, uint256 _ethFee, uint256 _oatFee)
+    IceRing(_ERC20SpendableContract, _iceContract, _ethFee, _oatFee) {
     
     require(_supply < (COLLECTION_LIMIT + 1),"Max supply of 51,200");
 
     entropyMode = _entropyMode;
-    fee = _fee;
 
     uint256 numberOfStripes = _supply / STRIPE_WIDTH;
 
@@ -118,17 +116,6 @@ abstract contract StripeAllocated is Context, IceRing {
 
   /**
   *
-  * @dev Update fee. Implement an external call that calls this in child contract, likely ownerOnly.
-  *
-  */
-  function _updateFee(uint256 _fee) internal {
-    uint256 oldFee = fee;
-    fee = _fee;
-    emit FeeUpdated(oldFee, _fee);
-  }
-
-  /**
-  *
   * @dev Allocate item from array:
   *
   */
@@ -141,9 +128,9 @@ abstract contract StripeAllocated is Context, IceRing {
 
     uint256 allocatedIndex;
 
-    if (entropyMode == 0) allocatedIndex = (_getNumberInRangeLight(items.length, fee) - 1);
-    else if (entropyMode == 1) allocatedIndex = (_getNumberInRangeStandard(items.length, fee) - 1);
-    else if (entropyMode == 2) allocatedIndex = (_getNumberInRangeHeavy(items.length, fee) - 1);
+    if (entropyMode == 0) allocatedIndex = (_getNumberInRangeETH(NUMBER_IN_RANGE_LIGHT, items.length) - 1);
+    else if (entropyMode == 1) allocatedIndex = (_getNumberInRangeETH(NUMBER_IN_RANGE_STANDARD, items.length) - 1);
+    else if (entropyMode == 2) allocatedIndex = (_getNumberInRangeETH(NUMBER_IN_RANGE_HEAVY, items.length) - 1);
     else revert("Unrecognised entropy mode");
     
     allocatedItem_ = uint256(items[allocatedIndex]) + stripeStartId;
@@ -185,9 +172,9 @@ abstract contract StripeAllocated is Context, IceRing {
     
     uint256 allocatedIndex;
 
-    if (entropyMode == 0) allocatedIndex = (_getNumberInRangeLight(stripes.length, fee) - 1);
-    else if (entropyMode == 1) allocatedIndex = (_getNumberInRangeStandard(stripes.length, fee) - 1);
-    else if (entropyMode == 2) allocatedIndex = (_getNumberInRangeHeavy(stripes.length, fee) - 1);
+    if (entropyMode == 0) allocatedIndex = (_getNumberInRangeETH(NUMBER_IN_RANGE_LIGHT, stripes.length) - 1);
+    else if (entropyMode == 1) allocatedIndex = (_getNumberInRangeETH(NUMBER_IN_RANGE_STANDARD, stripes.length) - 1);
+    else if (entropyMode == 2) allocatedIndex = (_getNumberInRangeETH(NUMBER_IN_RANGE_HEAVY, stripes.length) - 1);
     else revert("Unrecognised entropy mode");
 
     uint256 chosenStripe = uint256(stripes[allocatedIndex]);

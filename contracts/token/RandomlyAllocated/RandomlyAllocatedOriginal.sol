@@ -34,7 +34,6 @@ abstract contract RandomlyAllocated is Context, IceRing {
 
   uint16[] public items; // Array of items - Note max items is 65,535
   uint256 public immutable entropyMode;
-  uint256 public fee;
   uint16 private constant LOAD_LIMIT = 2500;
   uint16 public remainingSupplyToLoad;
   uint16 public continueLoadFromId;
@@ -46,11 +45,10 @@ abstract contract RandomlyAllocated is Context, IceRing {
   * @dev must be passed supply details, ERC20 payable contract and ice contract addresses, as well as entropy mode and fee (if any)
   *
   */
-  constructor(uint16 _supply, address _ERC20SpendableContract, address _iceContract, uint256 _entropyMode, uint256 _fee)
-    IceRing(_ERC20SpendableContract, _iceContract) {
+  constructor(uint16 _supply, address _ERC20SpendableContract, address _iceContract, uint256 _entropyMode, uint256 _ethFee, uint256 _oatFee)
+    IceRing(_ERC20SpendableContract, _iceContract, _ethFee, _oatFee) {
     
     entropyMode = _entropyMode;
-    fee = _fee;
     
     remainingSupplyToLoad = _supply;
 
@@ -105,18 +103,6 @@ abstract contract RandomlyAllocated is Context, IceRing {
     return(items);
   }
 
-
-  /**
-  *
-  * @dev Update fee. Implement an external call that calls this in child contract, likely ownerOnly.
-  *
-  */
-  function _updateFee(uint256 _fee) internal {
-    uint256 oldFee = fee;
-    fee = _fee;
-    emit FeeUpdated(oldFee, _fee);
-  }
-
   /**
   *
   * @dev Allocate item from array:
@@ -133,9 +119,9 @@ abstract contract RandomlyAllocated is Context, IceRing {
 
     uint256 allocatedIndex;
 
-    if (entropyMode == 0) allocatedIndex = (_getNumberInRangeLight(items.length, fee) - 1);
-    else if (entropyMode == 1) allocatedIndex = (_getNumberInRangeStandard(items.length, fee) - 1);
-    else if (entropyMode == 2) allocatedIndex = (_getNumberInRangeHeavy(items.length, fee) - 1);
+    if (entropyMode == 0) allocatedIndex = (_getNumberInRangeETH(NUMBER_IN_RANGE_LIGHT, items.length) - 1);
+    else if (entropyMode == 1) allocatedIndex = (_getNumberInRangeETH(NUMBER_IN_RANGE_STANDARD, items.length) - 1);
+    else if (entropyMode == 2) allocatedIndex = (_getNumberInRangeETH(NUMBER_IN_RANGE_HEAVY, items.length) - 1);
     else revert("Unrecognised entropy mode");
 
     

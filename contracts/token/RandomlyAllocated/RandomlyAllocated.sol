@@ -16,7 +16,7 @@ pragma solidity ^0.8.13;
 */
 
 import "@openzeppelin/contracts/utils/Context.sol";  
-import "../../entropy/IceRing.sol";
+import "@omnus/contracts/entropy/IceRing.sol";
 
 /**
 *
@@ -127,12 +127,12 @@ abstract contract RandomlyAllocated is Context, IceRing {
   * @dev Allocate item from array:
   *
   */
-  function _getItem() internal returns(uint256 allocatedItem_) { //mode: 0 = light, 1 = standard, 2 = heavy
+  function _getItem(uint256 _accessMode) internal returns(uint256 allocatedItem_) { //mode: 0 = light, 1 = standard, 2 = heavy
     
     require(parentArray.length != 0, "ID allocation exhausted");
 
     // First select the entry from the parent array:
-    uint16 parentIndex = uint16(_getEntropy(parentArray.length));
+    uint16 parentIndex = uint16(_getEntropy(_accessMode, parentArray.length));
 
     uint16 parent = parentArray[parentIndex];
 
@@ -142,7 +142,7 @@ abstract contract RandomlyAllocated is Context, IceRing {
     }
 
     // Select the item from the child array, and add on the elevation factor from the parent:
-    uint256 childIndex = _getEntropy(childArray[parent].length);
+    uint256 childIndex = _getEntropy(_accessMode, childArray[parent].length);
 
     allocatedItem_ = uint256(childArray[parent][childIndex]) + (parent * CHILD_ARRAY_WIDTH);
 
@@ -179,12 +179,23 @@ abstract contract RandomlyAllocated is Context, IceRing {
   * @dev Allocate item from array:
   *
   */
-  function _getEntropy(uint256 _upperBound) internal returns(uint256 allocatedIndex_) { //mode: 0 = light, 1 = standard, 2 = heavy
+  function _getEntropy(uint256 _accessMode, uint256 _upperBound) internal returns(uint256 allocatedIndex_) { //mode: 0 = light, 1 = standard, 2 = heavy
     
-    if (entropyMode == 0) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_LIGHT, _upperBound) - 1);
-    else if (entropyMode == 1) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_STANDARD, _upperBound) - 1);
-    else if (entropyMode == 2) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_HEAVY, _upperBound) - 1);
-    else revert("Unrecognised entropy mode");
+    // Access mode of 0 is direct access, ETH payment may be required:
+    if (_accessMode == 0) { 
+      if (entropyMode == 0) allocatedIndex_ = (_getNumberInRangeETH(NUMBER_IN_RANGE_LIGHT, _upperBound) - 1);
+      else if (entropyMode == 1) allocatedIndex_ = (_getNumberInRangeETH(NUMBER_IN_RANGE_STANDARD, _upperBound) - 1);
+      else if (entropyMode == 2) allocatedIndex_ = (_getNumberInRangeETH(NUMBER_IN_RANGE_HEAVY, _upperBound) - 1);
+      else revert("Unrecognised entropy mode");
+    }
+    // Access mode of 0 is token relayed access, OAT payment may be required:
+    else {
+      if (entropyMode == 0) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_LIGHT, _upperBound) - 1);
+      else if (entropyMode == 1) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_STANDARD, _upperBound) - 1);
+      else if (entropyMode == 2) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_HEAVY, _upperBound) - 1);
+      else revert("Unrecognised entropy mode");
+    }
+
     return(allocatedIndex_);
 
   }

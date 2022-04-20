@@ -656,7 +656,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
       })
     })
 
-    describe("TokenID Random Assignment", function () {
+    describe("TokenID Random Assignment - token relayed", function () {
 
       beforeEach(async function () {
         var tx1 = await hardhatICE
@@ -676,7 +676,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
   
           var tx1 = await hardhatRandomERC721
           .connect(owner)
-          .randomlyAllocatedMint()  
+          .randomlyAllocatedMint(1)  
           var receipt = await tx1.wait()
           console.log(BigInt(receipt.events[2].args.tokenId))   
 
@@ -685,7 +685,43 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         await expect(
           hardhatRandomERC721
           .connect(owner)
-          .randomlyAllocatedMint()  
+          .randomlyAllocatedMint(1)  
+        ).to.be.reverted
+
+      })
+
+    })
+
+    describe("TokenID Random Assignment - direct access", function () {
+
+      beforeEach(async function () {
+        var tx1 = await hardhatICE
+        .connect(owner)
+        .addEntropy(
+          entropy1.address
+        )
+        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        var receipt = await tx1.wait()
+        expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
+
+      })
+
+      it("Works for full collection", async () => {
+
+        for (let i = 0; i < ERC721_SUPPLY; i += 1) {
+  
+          var tx1 = await hardhatRandomERC721
+          .connect(owner)
+          .randomlyAllocatedMint(0)  
+          var receipt = await tx1.wait()
+          console.log(BigInt(receipt.events[2].args.tokenId))   
+
+        }
+
+        await expect(
+          hardhatRandomERC721
+          .connect(owner)
+          .randomlyAllocatedMint(0)  
         ).to.be.reverted
 
       })
@@ -717,7 +753,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         await expect(
           hardhatRandomERC721
         .connect(owner)
-        .randomlyAllocatedMint(),
+        .randomlyAllocatedMint(1),
         ).to.be.revertedWith("Incorrect ERC20 payment")
 
       })
@@ -731,7 +767,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         await expect(
           hardhatRandomERC721
         .connect(owner)
-        .randomlyAllocatedMint()
+        .randomlyAllocatedMint(1)
         ).to.be.revertedWith("ERC20: transfer amount exceeds balance")
 
       })
@@ -748,8 +784,39 @@ describe.only("IceRing On-chain RNG Functionality", function () {
 
         var tx1 = await hardhatRandomERC721
         .connect(owner)
-        .randomlyAllocatedMint()
+        .randomlyAllocatedMint(1)
         expect(tx1).to.emit(hardhatOAT, "Transfer")
+
+      })
+
+      it("Fails when ETH not passed (as no balance) and fee required", async () => {
+
+        await expect(
+          hardhatRandomERC721
+        .connect(owner)
+        .randomlyAllocatedMint(0),
+        ).to.be.revertedWith("Incorrect ETH payment")
+
+      })
+
+      it("Succeeds when ETH passed", async () => {
+
+        await hardhatRandomERC721
+        .connect(owner)
+        .updateETHFee(1000000000)
+
+        await owner.sendTransaction({
+          to: hardhatRandomERC721.address,
+          value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
+        });
+
+        var tx1 = await hardhatRandomERC721
+        .connect(owner)
+        .randomlyAllocatedMint(0)  
+
+        var tx1 = await hardhatRandomERC721
+        .connect(owner)
+        .randomlyAllocatedMint(0)
 
       })
     })

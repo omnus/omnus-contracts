@@ -55,7 +55,20 @@ contract RandomlyAllocatedERC721 is ERC721, RandomlyAllocated, Ownable {
   * @dev Mint a random tokenId:
   *
   */
-  function randomlyAllocatedMint() external {
-    _safeMint(msg.sender, _getItem()); 
+  function randomlyAllocatedMint(uint256 _accessMode) external {
+    _safeMint(msg.sender, _getItem(_accessMode)); 
+  }
+
+    /**
+  *
+  * @dev Do not receive unidentified Eth or function calls:
+  *
+  */
+  receive() external payable {
+    require(msg.sender == owner(), "Only owner can fund contract");
+  }
+
+  fallback() external payable {
+    revert();
   }
 }
