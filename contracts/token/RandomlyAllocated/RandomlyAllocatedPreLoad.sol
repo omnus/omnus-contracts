@@ -110,6 +110,8 @@ abstract contract RandomlyAllocated is Context, IceRing {
   */
   function _getItem() internal returns(uint256 allocatedItem_) { //mode: 0 = light, 1 = standard, 2 = heavy
 
+    require(remainingSupplyToLoad == 0, "Supply load incomplete");
+
     /**
     *
     * @dev Get our randomly assigned item from remaining items in the array. Actual Index is the returned number 

@@ -17,6 +17,7 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/utils/Context.sol";  
 import "@omnus/contracts/entropy/IceRing.sol";
+import "hardhat/console.sol";
 
 /**
 *
@@ -40,6 +41,9 @@ abstract contract RandomlyAllocated is Context, IceRing {
   uint16[] public parentArray; 
   // Mapping of parentArray to childArray:
   mapping (uint16 => uint8[]) childArray;
+  // Track pre-loading of child arrays, if being used:
+  uint256 public remainingChildArraysToLoad;
+  uint256 public continueLoadFromArray;
   
   uint256 public immutable entropyMode;
   
@@ -49,6 +53,11 @@ abstract contract RandomlyAllocated is Context, IceRing {
   uint256 private constant COLLECTION_LIMIT = 51200; 
   // Each child array holds 32 items (1 slot wide):
   uint256 private constant CHILD_ARRAY_WIDTH = 32;
+  // Max number of child arrays that can be loaded in one block
+  uint16 private constant LOAD_LIMIT = 125;
+  // Save a small amount of gas by holding these values as constants:
+  uint256 private constant EXPONENT_18 = 10 ** 18;
+  uint256 private constant EXPONENT_36 = 10 ** 36;
 
   /**
   *
@@ -92,6 +101,8 @@ abstract contract RandomlyAllocated is Context, IceRing {
       unchecked{ i++; }
     }
 
+    remainingChildArraysToLoad = numberOfParentEntries;
+
     // Load complete, all set up and ready to go.
   }
 
@@ -131,8 +142,16 @@ abstract contract RandomlyAllocated is Context, IceRing {
     
     require(parentArray.length != 0, "ID allocation exhausted");
 
-    // First select the entry from the parent array:
-    uint16 parentIndex = uint16(_getEntropy(_accessMode, parentArray.length));
+    // Retrieve a uint256 of entropy from IceRing. We will use separate parts of this entropy uint for number in range
+    // calcs for array selection:
+    uint256 entropy = _getEntropy(_accessMode);
+
+    console.log(entropy);
+    console.log(entropy % EXPONENT_18);
+    console.log((entropy % EXPONENT_36) / EXPONENT_18);
+
+    // First select the entry from the parent array, using the left most 18 entropy digits:
+    uint16 parentIndex = uint16(((entropy % EXPONENT_18) * parentArray.length) / EXPONENT_18);
 
     uint16 parent = parentArray[parentIndex];
 
@@ -141,12 +160,12 @@ abstract contract RandomlyAllocated is Context, IceRing {
       childArray[parent] = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];
     }
 
-    // Select the item from the child array, and add on the elevation factor from the parent:
-    uint256 childIndex = _getEntropy(_accessMode, childArray[parent].length);
-
+    // Select the item from the child array, using the a different 18 entropy digits, and add on the elevation factor from the parent:
+    uint256 childIndex = (((entropy % EXPONENT_36) / EXPONENT_18) * childArray[parent].length) / EXPONENT_18;
+    
     allocatedItem_ = uint256(childArray[parent][childIndex]) + (parent * CHILD_ARRAY_WIDTH);
 
-    // Pop this item from the child array:
+    // Pop this item from the child array. First set the last item index:
     uint256 lastChildIndex = childArray[parent].length - 1;
 
     // When the item to remove from the array is the last item, the swap operation is unnecessary
@@ -159,7 +178,7 @@ abstract contract RandomlyAllocated is Context, IceRing {
 
     // Check if the childArray is no more:
     if (childArray[parent].length == 0) {
-      // Remove the parent as the child allocation is exhausted:
+      // Remove the parent as the child allocation is exhausted. First set the last index:
       uint256 lastParentIndex = parentArray.length - 1;
 
       // When the item to remove from the array is the last item, the swap operation is unnecessary
@@ -176,27 +195,57 @@ abstract contract RandomlyAllocated is Context, IceRing {
 
   /**
   *
-  * @dev Allocate item from array:
+  * @dev Retrieve Entropy
   *
   */
-  function _getEntropy(uint256 _accessMode, uint256 _upperBound) internal returns(uint256 allocatedIndex_) { //mode: 0 = light, 1 = standard, 2 = heavy
+  function _getEntropy(uint256 _accessMode) internal returns(uint256 entropy_) { 
     
     // Access mode of 0 is direct access, ETH payment may be required:
     if (_accessMode == 0) { 
-      if (entropyMode == 0) allocatedIndex_ = (_getNumberInRangeETH(NUMBER_IN_RANGE_LIGHT, _upperBound) - 1);
-      else if (entropyMode == 1) allocatedIndex_ = (_getNumberInRangeETH(NUMBER_IN_RANGE_STANDARD, _upperBound) - 1);
-      else if (entropyMode == 2) allocatedIndex_ = (_getNumberInRangeETH(NUMBER_IN_RANGE_HEAVY, _upperBound) - 1);
+      if (entropyMode == 0) entropy_ = (_getEntropyETH(ENTROPY_LIGHT));
+      else if (entropyMode == 1) entropy_ = (_getEntropyETH(ENTROPY_STANDARD));
+      else if (entropyMode == 2) entropy_ = (_getEntropyETH(ENTROPY_HEAVY));
       else revert("Unrecognised entropy mode");
     }
     // Access mode of 0 is token relayed access, OAT payment may be required:
     else {
-      if (entropyMode == 0) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_LIGHT, _upperBound) - 1);
-      else if (entropyMode == 1) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_STANDARD, _upperBound) - 1);
-      else if (entropyMode == 2) allocatedIndex_ = (_getNumberInRangeOAT(NUMBER_IN_RANGE_HEAVY, _upperBound) - 1);
+      if (entropyMode == 0) entropy_ = (_getEntropyOAT(ENTROPY_LIGHT));
+      else if (entropyMode == 1) entropy_ = (_getEntropyOAT(ENTROPY_STANDARD));
+      else if (entropyMode == 2) entropy_ = (_getEntropyOAT(ENTROPY_HEAVY));
       else revert("Unrecognised entropy mode");
     }
 
-    return(allocatedIndex_);
+    return(entropy_);
+
+  }
+
+  /**
+  *
+  * @dev _loadChildren: Optional function that can be used to pre-load child arrays. This can be used to shift gas costs out of
+  * execution by pre-loading some or all of the child arrays.
+  *
+  */
+  function _loadChildren() internal {
+    
+    require(remainingChildArraysToLoad != 0, "Load complete");
+
+    uint256 loadUntil;
+
+    if (remainingChildArraysToLoad > LOAD_LIMIT) {
+      loadUntil = continueLoadFromArray + LOAD_LIMIT;
+      remainingChildArraysToLoad -= LOAD_LIMIT;
+    }
+    else {
+      loadUntil = continueLoadFromArray + remainingChildArraysToLoad;
+      remainingChildArraysToLoad = 0;
+    }
+
+    for(uint256 i = continueLoadFromArray; i < loadUntil;) {
+      childArray[uint16(i)] = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];
+      unchecked{ i++; }
+    }
+
+    continueLoadFromArray = loadUntil;
 
   }
 

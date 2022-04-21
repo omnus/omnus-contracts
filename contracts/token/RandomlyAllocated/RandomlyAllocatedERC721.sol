@@ -52,6 +52,15 @@ contract RandomlyAllocatedERC721 is ERC721, RandomlyAllocated, Ownable {
 
   /**
   *
+  * @dev Preload children
+  *
+  */
+  function preloadChildArrays() external onlyOwner {
+    _loadChildren();
+  }
+
+  /**
+  *
   * @dev Mint a random tokenId:
   *
   */

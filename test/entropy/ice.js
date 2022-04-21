@@ -678,7 +678,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
           .connect(owner)
           .randomlyAllocatedMint(1)  
           var receipt = await tx1.wait()
-          console.log(BigInt(receipt.events[2].args.tokenId))   
+          console.log(BigInt(receipt.events[1].args.tokenId))   
 
         }
 
@@ -714,7 +714,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
           .connect(owner)
           .randomlyAllocatedMint(0)  
           var receipt = await tx1.wait()
-          console.log(BigInt(receipt.events[2].args.tokenId))   
+          console.log(BigInt(receipt.events[1].args.tokenId))   
 
         }
 
