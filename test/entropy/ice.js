@@ -15,7 +15,7 @@ const BULK_TEST_ENTROPY = 5;
 let day = d.getDay();
 
 
-describe.only("IceRing On-chain RNG Functionality", function () {
+describe("IceRing On-chain RNG Functionality", function () {
   let hardhatICE
   let hardhatOAT
   let hardhatRandomERC721
@@ -31,7 +31,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
   beforeEach(async function () {
     ;[owner, addr1, entropy1, entropy2, entropy3, treasury, ...addrs] = await ethers.getSigners()
 
-    const OAT = await ethers.getContractFactory("OAT")
+    const OAT = await ethers.getContractFactory("MockERC20")
     hardhatOAT = await OAT.deploy()
 
     const ICE = await ethers.getContractFactory("Ice")
@@ -87,7 +87,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -99,7 +99,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -111,7 +111,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -136,7 +136,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -149,7 +149,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .updateEntropy(
           1, entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyUpdated")
+        expect(tx2).to.emit(hardhatICE, "EntropyUpdated")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._index).to.equal(1)
         expect(receipt.events[0].args._newAddress).to.equal(entropy2.address)
@@ -176,7 +176,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -188,7 +188,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -200,7 +200,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -210,7 +210,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx4 = await hardhatICE
         .connect(owner)
         .deleteAllEntropy()
-        expect(tx3).to.emit(hardhatICE, "entropyCleared")
+        expect(tx4).to.emit(hardhatICE, "EntropyCleared")
 
         const seed1cleared = await hardhatICE.viewEntropyAddress(1)
         expect(seed1cleared).to.equal(ZERO_ADDRESS)
@@ -225,7 +225,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx5).to.emit(hardhatICE, "entropyAdded")
+        expect(tx5).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx5.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -248,7 +248,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx1 = await hardhatICE
         .connect(owner)
         .updateBaseFee(1000000000)
-        expect(tx1).to.emit(hardhatICE, "FeeUpdated")
+        expect(tx1).to.emit(hardhatICE, "BaseFeeUpdated")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args.oldFee).to.equal(0)
         expect(receipt.events[0].args.newFee).to.equal(1000000000)
@@ -263,7 +263,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx1 = await hardhatICE
         .connect(owner)
         .updateBaseFee(1000000000)
-        expect(tx1).to.emit(hardhatICE, "FeeUpdated")
+        expect(tx1).to.emit(hardhatICE, "BaseFeeUpdated")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args.oldFee).to.equal(0)
         expect(receipt.events[0].args.newFee).to.equal(1000000000)
@@ -306,7 +306,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx1 = await hardhatICE
         .connect(owner)
         .updateBaseFee(1000000000)
-        expect(tx1).to.emit(hardhatICE, "FeeUpdated")
+        expect(tx1).to.emit(hardhatICE, "BaseFeeUpdated")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args.oldFee).to.equal(0)
         expect(receipt.events[0].args.newFee).to.equal(1000000000)
@@ -396,7 +396,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -405,7 +405,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -414,7 +414,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -476,7 +476,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx1 = await hardhatICE
         .connect(owner)
         .withdrawERC20(hardhatOAT.address, 1000000000)
-        expect(tx1).to.emit(hardhatICE, "Transfer")
+        expect(tx1).to.emit(hardhatICE, "TokenWithdrawal")
 
         currentBalance = BigInt(await hardhatOAT.balanceOf(owner.address))
 
@@ -518,9 +518,10 @@ describe.only("IceRing On-chain RNG Functionality", function () {
           treasury.address,
         )
 
-        await expect(
+        var tx2 = await expect(
           hardhatICE.connect(owner).withdrawETH(1000000000000),
         ).to.not.be.reverted
+        expect(tx2).to.emit(hardhatICE, "EthWithdrawal")
         
         const postBalance = await ethers.provider.getBalance(
           treasury.address,
@@ -541,7 +542,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -564,7 +565,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -651,7 +652,6 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         });
 
         var tx1 = await hardhatIceTesterDirect.connect(owner).getEntropyStandard()
-        expect(tx1).to.emit(hardhatOAT, "Transfer")
 
       })
     })
@@ -664,7 +664,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -700,7 +700,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -736,7 +736,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -829,7 +829,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -838,7 +838,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -847,7 +847,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -858,7 +858,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx1 = await hardhatIceTester
         .connect(owner)
         .getEntropyStandard()
-        expect(tx1).to.emit(hardhatICE, "entropyServed")
+        expect(tx1).to.emit(hardhatICE, "EntropyServed")
 
         //var entropy = await hardhatICE.repeatLastGetEntropy()
         //console.log(BigInt(entropy));
@@ -870,7 +870,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx2 = await hardhatIceTester
         .connect(owner)
         .getEntropyStandard()
-        expect(tx2).to.emit(hardhatICE, "entropyServed")
+        expect(tx2).to.emit(hardhatICE, "EntropyServed")
 
         //var entropy2 = await hardhatICE.repeatLastGetEntropy()
         //console.log(BigInt(entropy2));
@@ -882,7 +882,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx3 = await hardhatIceTester
         .connect(owner)
         .getEntropyStandard()
-        expect(tx3).to.emit(hardhatICE, "entropyServed")
+        expect(tx3).to.emit(hardhatICE, "EntropyServed")
 
         //var entropy3 = await hardhatICE.repeatLastGetEntropy()
         //console.log(BigInt(entropy3));
@@ -894,7 +894,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx4 = await hardhatIceTester
         .connect(owner)
         .getEntropyStandard()
-        expect(tx4).to.emit(hardhatICE, "entropyServed")
+        expect(tx4).to.emit(hardhatICE, "EntropyServed")
 
         //var entropy4 = await hardhatICE.repeatLastGetEntropy()
         //console.log(BigInt(entropy4));
@@ -910,7 +910,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx1 = await hardhatIceTester
         .connect(owner)
         .getEntropyHeavy()
-        expect(tx1).to.emit(hardhatICE, "entropyServed")
+        expect(tx1).to.emit(hardhatICE, "EntropyServed")
 
         //var entropy1 = await hardhatICE.repeatLastGetEntropy()
         //console.log(BigInt(entropy1));
@@ -922,7 +922,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         var tx2 = await hardhatIceTester
         .connect(owner)
         .getEntropyHeavy()
-        expect(tx2).to.emit(hardhatICE, "entropyServed")
+        expect(tx2).to.emit(hardhatICE, "EntropyServed")
 
         //var entropy2 = await hardhatICE.repeatLastGetEntropy()
         //console.log(BigInt(entropy2));
@@ -943,7 +943,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -952,7 +952,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -961,7 +961,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -978,7 +978,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
           var tx1 = await hardhatIceTester
           .connect(owner)
           .getEntropyStandard()
-          expect(tx1).to.emit(hardhatICE, "entropyServed")
+          expect(tx1).to.emit(hardhatICE, "EntropyServed")
 
           //var entropy = await hardhatICE.repeatLastGetEntropy()
           //console.log(BigInt(entropy));
@@ -1009,7 +1009,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1018,7 +1018,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1027,7 +1027,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -1050,7 +1050,6 @@ describe.only("IceRing On-chain RNG Functionality", function () {
           var tx1 = await hardhatIceTester
           .connect(owner)
           .getEntropyLight()
-          expect(tx1).to.emit(hardhatICE, "entropyServed")
 
           //var entropy = await hardhatICE.repeatLastGetEntropyLight()
           //console.log(BigInt(entropy));
@@ -1080,7 +1079,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1089,7 +1088,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1098,7 +1097,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -1115,7 +1114,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
           var tx1 = await hardhatIceTester
           .connect(owner)
           .getEntropyHeavy()
-          expect(tx1).to.emit(hardhatICE, "entropyServed")
+          expect(tx1).to.emit(hardhatICE, "EntropyServed")
 
           //var entropy = await hardhatICE.repeatLastGetEntropyHeavy()
           //console.log(BigInt(entropy));
@@ -1147,7 +1146,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1156,7 +1155,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1165,7 +1164,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -1213,7 +1212,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1222,7 +1221,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1231,7 +1230,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -1278,7 +1277,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1287,7 +1286,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1296,7 +1295,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -1348,7 +1347,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1357,7 +1356,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1366,7 +1365,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -1383,7 +1382,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
           var tx1 = await hardhatIceTesterDirect
           .connect(owner)
           .getEntropyStandard()
-          expect(tx1).to.emit(hardhatICE, "entropyServed")
+          expect(tx1).to.emit(hardhatICE, "EntropyServed")
 
           //var entropy = await hardhatICE.repeatLastGetEntropy()
           //console.log(BigInt(entropy));
@@ -1414,7 +1413,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1423,7 +1422,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1432,7 +1431,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -1455,7 +1454,6 @@ describe.only("IceRing On-chain RNG Functionality", function () {
           var tx1 = await hardhatIceTesterDirect
           .connect(owner)
           .getEntropyLight()
-          expect(tx1).to.emit(hardhatICE, "entropyServed")
 
           //var entropy = await hardhatICE.repeatLastGetEntropyLight()
           //console.log(BigInt(entropy));
@@ -1485,7 +1483,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1494,7 +1492,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1503,7 +1501,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -1520,7 +1518,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
           var tx1 = await hardhatIceTesterDirect
           .connect(owner)
           .getEntropyHeavy()
-          expect(tx1).to.emit(hardhatICE, "entropyServed")
+          expect(tx1).to.emit(hardhatICE, "EntropyServed")
 
           //var entropy = await hardhatICE.repeatLastGetEntropyHeavy()
           //console.log(BigInt(entropy));
@@ -1552,7 +1550,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1561,7 +1559,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1570,7 +1568,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -1618,7 +1616,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1627,7 +1625,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1636,7 +1634,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 
@@ -1683,7 +1681,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy1.address
         )
-        expect(tx1).to.emit(hardhatICE, "entropyAdded")
+        expect(tx1).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx1.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy1.address)
 
@@ -1692,7 +1690,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy2.address
         )
-        expect(tx2).to.emit(hardhatICE, "entropyAdded")
+        expect(tx2).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx2.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy2.address)
 
@@ -1701,7 +1699,7 @@ describe.only("IceRing On-chain RNG Functionality", function () {
         .addEntropy(
           entropy3.address
         )
-        expect(tx3).to.emit(hardhatICE, "entropyAdded")
+        expect(tx3).to.emit(hardhatICE, "EntropyAdded")
         var receipt = await tx3.wait()
         expect(receipt.events[0].args._entropyAddress).to.equal(entropy3.address)
 

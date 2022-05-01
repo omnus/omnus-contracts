@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@appliedblockchain/chainlink-plugins-fund-link": "^0.0.3",
-    "@omnus/contracts": "^1.13.0",
+    "@omnus/contracts": "^1.15.0",
     "@omnus/ice": "^1.0.0",
     "@openzeppelin/contracts": "^4.4.2"
   }

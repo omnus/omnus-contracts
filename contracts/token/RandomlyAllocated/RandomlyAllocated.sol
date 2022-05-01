@@ -17,7 +17,6 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/utils/Context.sol";  
 import "@omnus/contracts/entropy/IceRing.sol";
-import "hardhat/console.sol";
 
 /**
 *
@@ -145,10 +144,6 @@ abstract contract RandomlyAllocated is Context, IceRing {
     // Retrieve a uint256 of entropy from IceRing. We will use separate parts of this entropy uint for number in range
     // calcs for array selection:
     uint256 entropy = _getEntropy(_accessMode);
-
-    console.log(entropy);
-    console.log(entropy % EXPONENT_18);
-    console.log((entropy % EXPONENT_36) / EXPONENT_18);
 
     // First select the entry from the parent array, using the left most 18 entropy digits:
     uint16 parentIndex = uint16(((entropy % EXPONENT_18) * parentArray.length) / EXPONENT_18);
