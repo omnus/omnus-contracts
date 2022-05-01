@@ -25,7 +25,7 @@ abstract contract ERC721BatchTransfer is Context, ERC721 {
 
   /**
   *
-  * @dev New function, safeTransferFromBatched, that allows the transfer of mulitle tokens in one transaction, saving time and gas.
+  * @dev New function, safeTransferFromBatched, that allows the transfer of mulitple tokens in one transaction, saving time and gas.
   *
   */
   function safeTransferFromBatched(
