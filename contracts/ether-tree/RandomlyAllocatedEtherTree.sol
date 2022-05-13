@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-// Omnus Contracts (contracts/token/RandomlyAllocated/RandomlyAllocated.sol)
+// Omnus Contracts (contracts/ether-tree/RandomlyAllocatedEtherTree.sol)
 // https://omnuslab.com/randomallocation
 
-// RandomlyAllocated (Allocate the items in a fixed length collection, calling IceRing to randomly assign each ID.
+// RandomlyAllocatedEtherTree (Special version of RandomlyAllocated for etherTree, as we need to exclude tokens YellowBird
+// and blueberry5 while deploying standard RandomlyAllocated functionality).
 
 pragma solidity ^0.8.13;
 
@@ -77,16 +78,9 @@ abstract contract RandomlyAllocated is Context, IceRing {
     // so that all subsequent child loads can safely assume a full width load:
     if (finalChildWidth != 0) {
 
-      // Load the final child array now:
-      uint8[] memory tempArray = new uint8[](finalChildWidth);
-
-      for(uint8 i = 0; i < uint8(finalChildWidth);) {
-        tempArray[i] = i;
-        unchecked{ i++; }
-      }
-
-      // Set this as the final child array:
-      childArray[uint16(numberOfParentEntries)] = tempArray;
+      // Set the final child array now:
+      // Exclude 98 (yellow bird) as that is available for free at yellowbird.ethertree.org:
+      childArray[uint16(numberOfParentEntries)] = [0,1,3];
 
       // Add one to the numberOfParentEntries to include the finalChild (as this will have been truncated off the calc above):
       numberOfParentEntries += 1;
@@ -173,7 +167,13 @@ abstract contract RandomlyAllocated is Context, IceRing {
 
     // Check if we need to load the child (we will the first time it is accessed):
     if (childArray[parent].length == 0) {
-      childArray[parent] = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];
+      // Exclude blueberrybird5:
+      if (parent == 0) {
+        childArray[parent] = [0,1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];  
+      }
+      else {
+        childArray[parent] = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];
+      }  
     }
 
     // Select the item from the child array, using the a different 18 entropy digits, and add on the elevation factor from the parent:
