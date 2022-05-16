@@ -35,7 +35,7 @@ contract TheForest is Ownable, RandomlyAllocated, IERC721Receiver {
   address public immutable ice; 
   address public immutable oat; 
 
-  uint256 public constant PRICE        = 10000000000000000; // 0.01 eth
+  uint256 public constant PRICE        =  5000000000000000; // 0.005 eth
   uint256 public constant WASSIE_PRICE =  1000000000000000; // 0.001 eth
 
   mapping(address => bool) private youveGotOneAlready;
@@ -85,42 +85,62 @@ contract TheForest is Ownable, RandomlyAllocated, IERC721Receiver {
 
   /**
   *
-  * @dev claimTreeNormie
+  * @dev claimTree
   *
   */
-  function claimTreeNormie() payable external {
-    require(msg.value == PRICE, "Incorrect ETH amount passed. For a shot at a free 1/1 tree go to yellowbird.ethertree.org");
+  function claimTree(bool wassie) payable external {
 
-    deliverTree();
-  }
+    uint256 requiredPrice;
+    if (wassie) {
+      requiredPrice = WASSIE_PRICE;
+    }
+    else {
+      requiredPrice = PRICE;
+    }
 
-  /**
-  *
-  * @dev claimTreeWassie
-  *
-  */
-  function claimTreeWassie() payable external {
+    bool isEligible;
+    string memory reason;
 
-    require((wassiesByWassies.balanceOf(msg.sender) >= 1), "Must have a wassie for this price. For a shot at a free 1/1 tree go to yellowbird.ethertree.org");
-    require(msg.value == WASSIE_PRICE, "Incorrect ETH amount passed. For a shot at a free 1/1 tree go to yellowbird.ethertree.org");
+    (isEligible, reason) = canClaimATree(wassie, msg.value, requiredPrice);
 
-    deliverTree();
+    require(isEligible, reason);
 
-  }
-
-  /**
-  *
-  * @dev deliverTree
-  *
-  */
-  function deliverTree() internal {
-
-    require(!youveGotOneAlready[msg.sender], "Hey, one each please! You can't have two.");
-    
     // Send them their randomly selected tree!
     etherTree.safeTransferFrom(address(this), msg.sender, _getItem(0));
 
     youveGotOneAlready[msg.sender] = true;
+
+  }
+
+  /**
+  *
+  * @dev canClaimATree - check is the caller address is eligible
+  *
+  */
+  function canClaimATree(bool wassie, uint256 payment, uint256 price) public view returns(bool isEligible, string memory message) {
+
+    // 1) See if they have already claimed one - it's one per address:
+    if (youveGotOneAlready[msg.sender]) {
+      return(false, "Hey, one each please!");
+    }
+
+    // 2) Check passed payment:
+    if (payment != price) {
+      return(false, "Incorrect ETH amount passed.");
+    }
+
+    // 3) If claiming to be a wassie, check for a wassie:
+    if (wassie && wassiesByWassies.balanceOf(msg.sender) < 1) {
+      return(false, "Must have a wassie for this price. Pay normie price, or checkout yellowbird.ethertree.org");
+    }
+
+    // 3) If claiming to not be a wassie, check for a wassie:
+    if (!wassie && wassiesByWassies.balanceOf(msg.sender) > 0) {
+      return(false, "You have a wassie! Press the other button it's cheaper!");
+    }
+
+    // 4) We got here? Good to go:
+    return(true, "");
 
   }
 

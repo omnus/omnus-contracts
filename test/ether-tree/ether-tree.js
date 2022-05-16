@@ -59,13 +59,14 @@ describe("EtherTree", function () {
         }
 
         // 2) Mint normie:
-        var tx2 = await hardhatForest.connect(addr1).claimTreeNormie({
-          value: ethers.utils.parseEther("0.01"),
+        var tx2 = await hardhatForest.connect(addr1).claimTree(false, {
+          value: ethers.utils.parseEther("0.005"),
         });
 
       })
 
       it("Wassie Allocation", async () => {
+        
         // 1) Transfer all the ethertree items to the forest:
         for (let i = 0; i < 100; i += 1) {
           
@@ -76,57 +77,85 @@ describe("EtherTree", function () {
        
         // 2) Claim tree wassie, no wassie, no workie:
         await expect(
-          hardhatForest.connect(addr1).claimTreeWassie({
+          hardhatForest.connect(addr1).claimTree(true, {
             value: ethers.utils.parseEther("0.001"),
           }),
-        ).to.be.revertedWith("Must have a wassie for this price. For a shot at a free 1/1 tree go to yellowbird.ethertree.org")
+        ).to.be.revertedWith("Must have a wassie for this price. Pay normie price, or checkout yellowbird.ethertree.org")
 
         // 3) Mint wassie. Much wow.
         var txx = await hardhatLoomlockNFT.connect(addr1).safeMint();
 
+        // 4a) Try to mint normie, get message  
+        await expect(
+          hardhatForest.connect(addr1).claimTree(false, {
+            value: ethers.utils.parseEther("0.005"),
+          }),
+        ).to.be.revertedWith("You have a wassie! Press the other button it's cheaper!")
+
         // 4) Claim tree wassie, wassie, workie:
         await expect(
-          hardhatForest.connect(addr1).claimTreeWassie({
+          hardhatForest.connect(addr1).claimTree(true, {
             value: ethers.utils.parseEther("0.001"),
           }),
         ).to.not.be.reverted
 
-        // 5) Claim second wassie, no workie greedy wassie:
+        // 5) Claim second tree wassie, no workie greedy wassie:
         await expect(
-          hardhatForest.connect(addr1).claimTreeWassie({
+          hardhatForest.connect(addr1).claimTree(true, {
             value: ethers.utils.parseEther("0.001"),
           }),
-        ).to.be.revertedWith("Hey, one each please! You can't have two.")
+        ).to.be.revertedWith("Hey, one each please!")
+
 
         // 6) Another address also need wassie:
         await expect(
-          hardhatForest.connect(addr2).claimTreeWassie({
+          hardhatForest.connect(addr2).claimTree(true, {
             value: ethers.utils.parseEther("0.001"),
           }),
-        ).to.be.revertedWith("Must have a wassie for this price. For a shot at a free 1/1 tree go to yellowbird.ethertree.org")
+        ).to.be.revertedWith("Must have a wassie for this price. Pay normie price, or checkout yellowbird.ethertree.org")
 
         // 7) But can mint normie:
         await expect(
-          hardhatForest.connect(addr2).claimTreeNormie({
-            value: ethers.utils.parseEther("0.01"),
+          hardhatForest.connect(addr2).claimTree(false, {
+            value: ethers.utils.parseEther("0.005"),
           }),
         ).to.not.be.reverted
 
         // 8) But just the one:
         await expect(
-          hardhatForest.connect(addr2).claimTreeNormie({
-            value: ethers.utils.parseEther("0.01"),
+          hardhatForest.connect(addr2).claimTree(false, {
+            value: ethers.utils.parseEther("0.005"),
           }),
-        ).to.be.revertedWith("Hey, one each please! You can't have two.")
+        ).to.be.revertedWith("Hey, one each please!")
 
         // 9) Which includes with a wassie:
         var txx = await hardhatLoomlockNFT.connect(addr2).safeMint();
 
         await expect(
-          hardhatForest.connect(addr2).claimTreeWassie({
+          hardhatForest.connect(addr2).claimTree(true, {
             value: ethers.utils.parseEther("0.001"),
           }),
-        ).to.be.revertedWith("Hey, one each please! You can't have two.")
+        ).to.be.revertedWith("Hey, one each please!")
+      })
+
+      it("Can withdraw", async () => {
+
+        // 1) Transfer all the ethertree items to the forest:
+        for (let i = 0; i < 100; i += 1) {
+  
+          if (i != 5 && i != 98) {
+            var tx1 = await hardhatTrees.connect(owner)["safeTransferFrom(address,address,uint256)"](owner.address, hardhatForest.address, i);
+          }  
+        }
+
+        // 2) Mint normie:
+        var tx2 = await hardhatForest.connect(addr1).claimTree(false, {
+          value: ethers.utils.parseEther("0.005"),
+        });
+
+        await expect(
+          hardhatForest.connect(owner).withdrawEth(ethers.utils.parseEther("0.005")),
+        ).to.not.be.reverted
       })
 
     })
