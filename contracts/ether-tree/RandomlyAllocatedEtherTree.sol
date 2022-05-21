@@ -136,7 +136,7 @@ abstract contract RandomlyAllocated is Context, IceRing {
       // array will have been deleted. Therefore a parent array with no corresponding child array
       // needs to increase the total count by the full 32 items that will be loaded into the child
       // array when it is instantiate.
-      if (childArray[i].length == 0) {
+      if (childArray[parentArray[i]].length == 0) {
         totalRemainingIds += 32;
       }
       else {

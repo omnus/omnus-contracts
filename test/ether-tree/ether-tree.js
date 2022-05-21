@@ -47,7 +47,7 @@ describe("EtherTree", function () {
 
   })
 
-  context.only("Allocation from forest", function () {
+  context("Allocation from forest", function () {
     describe("Tree Allocation", function () {
       it("Normie Allocation", async () => {
         // 1) Transfer all the ethertree items to the forest:
