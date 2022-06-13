@@ -6,6 +6,7 @@ pragma solidity ^0.8.11;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol"; 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "hardhat/console.sol";
 
 contract EtherTree is ERC721, Ownable {
   using Strings for uint256;
@@ -30,5 +31,25 @@ contract EtherTree is ERC721, Ownable {
   {
     require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
     return string(abi.encodePacked(BASE_URI, tokenId.toString(), ".json"));
+  }
+
+  /**
+  * @dev See {IERC721-transferFrom}.
+  */
+  function transferFrom(
+      address from,
+      address to,
+      uint256 tokenId
+  ) public override {
+
+    console.log(from);
+    console.log(to);
+    console.log(tokenId);
+    console.log(msg.sender);
+    
+      //solhint-disable-next-line max-line-length
+      require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
+
+      _transfer(from, to, tokenId);
   }
 }
